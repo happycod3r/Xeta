@@ -105,7 +105,7 @@ function _init() {
     }
 
     function _init::add_directory_tree_to_fpath() {
-         fpath=("$XETA" "$XPLUGS" "$XENV" "$XENV/completions" "$XLIB" "$XBIN" "$XDEPS" "$XTOOLS" "$XTHEMES" "$XCACHE" "$XCONFIG" "$XPROMPT" "$XCUSTOM" "$XCUSTOM " $fpath)
+         fpath=("$XETA" "$XPLUGS" "$XENV" "$XENV/completions" "$XLIB" "$XBIN" "$XEXTS" "$XDEPS" "$XTOOLS" "$XLOG" "$XTHEMES" "$XCACHE" "$XCONFIG" "$XPROMPT" "$XCUSTOM" $fpath)
     }
 
     function _init::enable_completions() {
