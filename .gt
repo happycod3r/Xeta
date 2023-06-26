@@ -1,0 +1,7 @@
+
+local DEV_TOKEN="Z2hwXzduM3M3ck54ZVViMFF0bm1BZkllUHZaODdldEJ2WjJhOXFlQg=="
+
+function get-token() {
+    echo "$DEV_TOKEN"
+}
+

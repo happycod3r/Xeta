@@ -1,0 +1,53 @@
+
+function fzf_setup_using_base_dir() {
+
+    local fzf_base
+
+    test -d "${FZF_BASE_PATH}" && fzf_base="${FZF_BASE_PATH}"
+
+    if [[ ! -d "${fzf_base}" ]]; then
+        return 1
+    fi
+
+    if (( ! ${+commands[fzf]} )) && [[ "$PATH" != *$fzf_base/bin* ]]; then
+        export PATH="$PATH:$fzf_base"
+    fi
+
+    # Auto-completion
+    if [[ -o interactive && "$DISABLE_FZF_AUTO_COMPLETION" != "true" ]]; then
+        source "${XLIB}/completion.xt" 2> /dev/null
+    fi
+
+    # Key bindings
+    if [[ "$DISABLE_FZF_KEY_BINDINGS" != "true" ]]; then
+        source "${XLIB}/key-bindings.xt"
+    fi
+}
+
+# Indicate to user that fzf installation not found if nothing worked
+function fzf_setup_error() {
+    cat >&2 <<'EOF'
+    |-------------------------------------------------------------------------------
+    |  [XETA::fzf.xtx]: Cannot find fzf installation directory.
+    |  Please add FZF_BASE_PATH="$XDEPS". \nIf fzf continues 
+    |  to not be found make sure fzf is actually present in the  above dependencies 
+    |  folder.
+    |-------------------------------------------------------------------------------
+
+EOF
+}
+
+fzf_setup_using_base_dir \
+    || fzf_setup_error
+
+unset -f -m fzf_setup_using_base_dir
+
+if [[ -z "$FZF_DEFAULT_COMMAND" ]]; then
+    if (( $+commands[fd] )); then
+        export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
+    elif (( $+commands[rg] )); then
+        export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git/*"'
+    elif (( $+commands[ag] )); then
+        export FZF_DEFAULT_COMMAND='ag -l --hidden -g "" --ignore .git'
+    fi
+fi

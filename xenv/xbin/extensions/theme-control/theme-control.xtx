@@ -1,0 +1,37 @@
+
+function theme {
+        
+    : ${1:=random} # Use random theme if none provided
+
+    if [[ -f "${XCUSTOM}/$1.zsh-theme" ]]; then
+        source "${XCUSTOM}/$1.zsh-theme"
+    elif [[ -f "${XCUSTOM}/themes/$1.zsh-theme" ]]; then
+        source "${XCUSTOM}/themes/$1.zsh-theme"
+    elif [[ -f "${XTHEMES}/$1.zsh-theme" ]]; then
+        source "${XTHEMES}/$1.zsh-theme"
+    else
+        echo "$0: Theme '$1' not found"
+        return 1
+    fi
+}
+
+function _theme {
+    _arguments "1: :($(lstheme))"
+}
+
+compdef _theme theme
+
+function lstheme {
+    # Resources:
+    # http://zsh.sourceforge.net/Doc/Release/Expansion.html#Modifiers
+    # http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Qualifiers
+    {
+        # Show themes inside XCUSTOM (in any subfolder)
+        # Strip XCUSTOM/themes/ and XCUSTOM/ from the name, so that it matches
+        # the value that should be written in $XTHEME to load the theme.
+        print -l "XCUSTOM"/**/*.zsh-theme(.N:r:gs:"XCUSTOM"/themes/:::gs:"$XCUSTOM"/:::)
+
+        # Show themes inside $XTHEMES, stripping the head of the path.
+        print -l "${XTHEMES}"/*.zsh-theme(.N:t:r)
+    } | sort -u | fmt -w $COLUMNS
+}

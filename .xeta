@@ -1,0 +1,340 @@
+#  8b        d8                                      
+#   Y8,    ,8P                ,d                     
+#    `8b  d8'                 88                     
+#      Y88P      ,adPPYba,  MM88MMM  ,adPPYYba,      
+#      d88b     a8P_____88    88     ""     `Y8      
+#    ,8P  Y8,   8PP"""""""    88     ,adPPPPP88      
+#   d8'    `8b  "8b,   ,aa    88,    88,    ,88      
+#  8P        Y8  `"Ybbd8"'    "Y888  `"8bbdP"Y8
+#           01011000 01100101 01110100 01100001
+
+function _init() {
+    
+    function _init::validate_configs() {
+        # Checks validity of the config files
+        config_path="$HOME/.xeta/xenv/config"
+        configs=(xeta aliases globals jump-points key-binds path theme-favlist)
+        function is_config_file() {
+            local base_dir=$1
+            local name=$2
+            builtin test -f "$base_dir/$name.conf"
+        }
+
+        # Make sure we only load .x files and from the correct path.
+        for config_file in ${configs[@]}; do
+            if is_config_file "$config_path" "$config_file"; then
+                fpath=("$config_path/$config_file.conf" $fpath)
+            else    
+                io::notify "config file \"%s\" not found" "$config_file"
+            fi
+        done
+        unset config_file
+    }
+
+    function _init::load_configs() {
+        [[ -f "${XETA}/xenv/config/xeta.conf" ]] && builtin source "${XETA}/xenv/config/xeta.conf"
+        [[ -f "${XCONFIG}/aliases.conf" ]] && builtin source "${XCONFIG}/aliases.conf"
+        [[ -f "${XCONFIG}/globals.conf" ]] && builtin source "${XCONFIG}/globals.conf"
+        [[ -f "${XCONFIG}/jump-points.conf.conf" ]] && builtin source "${XCONFIG}/jump-points.conf"
+        [[ -f "${XCONFIG}/key-binds.conf" ]] && builtin source "${XCONFIG}/key-binds.conf"
+        [[ -f "${XCONFIG}/path.conf" ]] && builtin source "${XCONFIG}/path.conf"
+    }
+
+    function _init::shield_from_non_zsh_exec() {
+        # Protect against non-zsh execution of XETA (use POSIX syntax here)
+        [[ -n "$ZSH_VERSION" ]] || {
+            # ANSI formatting function (\033[<code>m)
+            # 0: reset, 1: bold, 4: underline, 22: no bold, 24: no underline, 31: red, 33: yellow
+            
+            function _xformat() {
+                [[ $# -gt 0 ]] || return
+                IFS=";" printf "\033[%sm" $*
+            }
+            
+            # If stdout is not a terminal ignore all formatting
+            [[ -t 1 ]] || _xformat() { :; }
+
+            function xeta_process_tree() {
+                # Get process tree of the current process
+                pid=$$; pids="$pid"
+                while [[ ${pid-0} -ne 1 ]] && ppid=$(ps -e -o pid,ppid | awk "\$1 == $pid { print \$2 }"); do
+                    pids="$pids $pid"; pid=$ppid
+                done
+
+                # Show process tree
+                case "$(uname)" in
+                    Linux) 
+                        ps -o ppid,pid,command -f -p $pids 2>/dev/null 
+                    ;;
+                    Darwin|*) 
+                        ps -o ppid,pid,command -p $pids 2>/dev/null 
+                    ;;
+                esac
+
+                # If ps command failed, try Busybox ps
+                [[ $? -eq 0 ]] || ps -o ppid,pid,comm | awk "NR == 1 || index(\"$pids\", \$2) != 0"
+            }
+
+            {
+                shell=$(ps -o pid,comm | awk "\$1 == $$ { print \$2 }")
+                printf "$(_xformat 1 31)Error:$(_xformat 22) XETA can't be loaded from: $(_xformat 1)${shell}$(_xformat 22). "
+                printf "Run $(_xformat 1)zsh$(_xformat 22) instead.$(_xformat 0)\n"
+                printf "$(_xformat 33)Check out the process tree:$(_xformat 22)\n\n"
+                xeta_process_tree
+                printf "$(_xformat 0)\n"
+            } >&2
+
+            return 1
+        }
+    }
+
+    function _init::create_cache_dirs() {
+        # Create a cache directory if it doesn't exist already.
+        if [[ ! -d "$XCACHE" ]]; then
+            mkdir -p "$XCACHE"
+        fi
+            
+        # Make sure $XCACHE is actually writable otherwise make a directory in $HOME.
+        if [[ ! -w "$XCACHE" ]]; then
+            $XCACHE="${XDG_CACHE_HOME:-$HOME/.cache}/xeta"
+        fi
+
+        # Create a completions cache directory and add it to $fpath.
+        mkdir -p "$XCACHE/completions"
+        [[ ${fpath[(Ie)"$XCACHE/completions"]} ]] || fpath=("$XCACHE/completions" $fpath)
+    }
+
+    function _init::add_directory_tree_to_fpath() {
+         fpath=("$XETA" "$XPLUGS" "$XENV" "$XENV/completions" "$XLIB" "$XBIN" "$XDEPS" "$XTOOLS" "$XTHEMES" "$XCACHE" "$XCONFIG" "$XPROMPT" "$XCUSTOM" "$XCUSTOM " $fpath)
+    }
+
+    function _init::enable_completions() {
+        # Enable completion and recompile zcompdump file.
+        autoload -U compaudit compinit zrecompile
+        compinit -i
+    }
+
+    function _init::validate_xtx_files() {
+        # Checks validity of the .xtx file.
+        
+        function is_xtx_file() {
+            local base_dir=$1
+            local name=$2
+            builtin test -f $base_dir/$name/$name.xtx
+        }
+
+        # Make sure we only load .xtx files and from the correct path.
+        for xtx_file in $xtx_files; do
+            if is_xtx_file "$XEXTS" "$xtx_file"; then
+                fpath=("$XEXTS/$xtx_file" $fpath)
+            else
+                io::notify "xtx file \"%s\" not found" "$xtx_file"
+            fi
+        done
+    }
+    
+    function _init::validate_plugins() {
+        # Checks validity of the .plug file.
+        function is_plugin() {
+            local base_dir=$1
+            local name=$2
+            builtin test -f $base_dir/$name/$name.plugin.zsh
+        }
+
+        # Make sure we only load .plug files and from the correct path.
+        for plugin in $plugins; do
+            if is_plugin "$XPLUGS" "$plugin"; then
+                fpath=("$XPLUGS/$plugin" $fpath)
+            else
+                io::notify " plugin \"%s\" not found" "$plugin"
+            fi
+        done
+    }
+
+    function _init::get_short_hostname() {
+        # Figure out the SHORT hostname
+        if [[ "$OSTYPE" = darwin* ]]; then
+            # macOS's $HOST changes with dhcp, etc. Use ComputerName if possible.
+            SHORT_HOST=$(scutil --get ComputerName 2>/dev/null) || SHORT_HOST="${HOST/.*/}"
+        else
+            SHORT_HOST="${HOST/.*/}"
+        fi
+    }
+
+    function _init::set_version() {
+        
+        builtin cd $XETA
+        version=$(command git describe --tags HEAD 2>/dev/null) \
+            || version=$(command git sy mbolic-ref --quiet --short HEAD 2>/dev/null) \
+            || version=$(command git name-rev --no-undefined --name-only --exclude="remotes/*" HEAD 2>/dev/null) \
+            || version="<detached>"
+            clean_version=$(echo "$version" | cut -d'-' -f1)
+        echo $clean_version > "${XCONFIG}/version.conf"
+        XETA_VERSION="$clean_version"
+        builtin cd ~
+    }
+
+    function _init::setup_metadata() {
+        # Save the location of the current completion dump file.
+        if [[ -z "$ZSH_COMPDUMP" ]]; then
+            ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
+        fi
+
+        # Construct zcompdump Xeta metadata
+        zcompdump_revision="#xeta revision: $(builtin cd -q "$XETA"; git rev-parse HEAD 2>/dev/null)"
+        zcompdump_fpath="#xeta fpath: $fpath"
+
+        # Delete the zcompdump file if XETA zcompdump metadata changed
+        if ! command grep -q -Fx "$zcompdump_revision" "$ZSH_COMPDUMP" 2>/dev/null \
+            || ! command grep -q -Fx "$zcompdump_fpath" "$ZSH_COMPDUMP" 2>/dev/null; then
+            command rm -f "$ZSH_COMPDUMP"
+            zcompdump_refresh=1
+        fi
+
+        # Check if ZSH_COMPFIX = true || false.
+        if [[ "$ZSH_DISABLE_COMPFIX" != true ]]; then
+            builtin source "$XLIB/compfix.xt"
+            # If false, load only from secure directories
+            compinit -i -d "$ZSH_COMPDUMP"
+            # If completion insecurities exist, warn the user
+            handle_completion_insecurities &|
+        else
+            # If the user wants it, load from all found directories
+            compinit -u -d "$ZSH_COMPDUMP"
+        fi
+
+        # Append zcompdump metadata if missing
+        if (( $zcompdump_refresh )) \
+            || ! command grep -q -Fx "$zcompdump_revision" "$ZSH_COMPDUMP" 2>/dev/null; then
+            tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+
+        $zcompdump_revision
+        $zcompdump_fpath
+EOF
+        fi
+        unset zcompdump_revision zcompdump_fpath zcompdump_refresh
+
+        # zcompile the completion dump file if the .zwc is older or missing.
+        if command mkdir "${ZSH_COMPDUMP}.lock" 2>/dev/null; then
+            zrecompile -q -p "$ZSH_COMPDUMP"
+            command rm -rf "$ZSH_COMPDUMP.zwc.old" "${ZSH_COMPDUMP}.lock" 
+        fi
+    }
+
+    function _init::load_xt_files() {
+        for xt_file in "${XLIB}"/*.xt; do
+            builtin source "${XLIB}/${xt_file:t}"
+        done
+        unset xt_file
+    }
+
+    function _init::load_xtx_files() {
+        # Load all built-in extensions
+        for xtx_file in ${xtx_files[@]}; do
+            builtin source "$XBIN/extensions/$xtx_file/${xtx_file:t}.xtx"
+        done
+        unset xtx_file
+    }
+
+    function _init::load_plugins() {
+        # Load all of the plugins that are defined
+        for plugin in ${plugins[@]}; do
+            builtin source "$XPLUGS/$plugin/${plugin:t}.plugin.zsh"
+        done
+        unset plugin
+    }
+
+    function _init::load_themes() {
+        # Load the theme
+        is_theme() {
+            local base_dir=$1
+            local name=$2
+            builtin test -f $base_dir/$name.zsh-theme
+        }
+
+        if [[ $USE_XPROMPT =~ true ]]; then
+            builtin source "$XPROMPT/xprompt.zsh"
+            return 0
+        fi
+
+        if [[ -n "$XTHEME" ]]; then
+            if is_theme "$XTHEMES" "$XTHEME"; then
+                builtin source "$XTHEMES/$XTHEME.zsh-theme"
+            else
+                io::notify "theme \"%s\" not found" "$XTHEME"
+            fi
+        fi
+    }
+
+    function _init::load_hooks() {
+        
+        if [[ -n "$USE_ZSH_HOOKS"  && "$USE_ZSH_HOOKS" == "true" ]]; then
+            for hook in ${zsh_hooks[@]}; do
+                if [[ -f "${XENV}/hooks/${hook:t}_hook.zsh" ]]; then
+                    builtin source "${XENV}/hooks/${hook:t}_hook.zsh"
+                else
+                    io::notify "Hook file ${XENV}/hooks/${hook:t}_hook.zsh doesn't exist."
+                fi
+            done 
+            unset hook
+        fi
+    }
+
+    function _init::set_completion_colorls() {
+        # set completion colors to be the same as `ls`, after theme has been loaded
+        [[ -z "$LS_COLORS" ]] || zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+    }
+
+    function _init::load_dependency_scripts() {
+        [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"
+        [[ -f "$XDEPS/fzf/completion.zsh" ]] && builtin source $XDEPS/fzf/completion.zsh
+        [[ -f "$XDEPS/fzf/key-bindings.zsh" ]] && builtin source "$XDEPS/fzf/key-bindings.zsh"
+    }
+
+    function _init::check_sudo() {
+        if [[ $SUDO == "true" ]]; then
+            command -v "sudo" >/dev/null 2>&1 || return 1
+            alias mv='sudo mv'
+            alias cp='sudo cp'
+            alias rm='sudo rm'
+            alias mkdir='sudo mkdir'
+            alias rmdir='sudo rmdir'
+            alias touch='sudo touch'
+            alias nano='sudo nano'
+            alias apt='sudo apt'
+            alias apt-get='sudo apt-get'
+            alias yum='sudo yum'
+            # Add more package managers here.
+            alias systemctl='sudo systemctl'
+            alias passwd='sudo passwd'
+            alias chown='sudo chown'
+            alias chmod='sudo chmod'
+            alias reboot='sudo reboot'
+            alias shutdown='sudo shutdown'
+            alias find='sudo find'
+        fi
+    }
+    
+    _init::validate_configs
+    _init::load_configs
+    _init::shield_from_non_zsh_exec
+    _init::create_cache_dirs
+    _init::add_directory_tree_to_fpath
+    _init::enable_completions
+    _init::validate_xtx_files
+    _init::validate_plugins
+    _init::get_short_hostname
+    _init::set_version
+    _init::setup_metadata 
+    _init::load_xt_files
+    _init::load_xtx_files
+    _init::load_plugins
+    _init::load_themes
+    _init::load_hooks
+    _init::set_completion_colorls
+    _init::load_dependency_scripts
+    _init::check_sudo
+}
+
+_init
+

@@ -1,0 +1,156 @@
+
+
+function __cd-replace-buffer() {
+  local old=$1 new=$2 space=${2:+ }
+
+  # if the cursor is positioned in the $old part of the text, make
+  # the substitution and leave the cursor after the $new text
+  if [[ $CURSOR -le ${#old} ]]; then
+    BUFFER="${new}${space}${BUFFER#$old }"
+    CURSOR=${#new}
+  # otherwise just replace $old with $new in the text before the cursor
+  else
+    LBUFFER="${new}${space}${LBUFFER#$old }"
+  fi
+}
+
+function cd-command-line() {
+  # If line is empty, get the last run command from history
+  [[ -z $BUFFER ]] && LBUFFER="$(fc -ln -1)"
+
+  # Save beginning space
+  local WHITESPACE=""
+  if [[ ${LBUFFER:0:1} = " " ]]; then
+    WHITESPACE=" "
+    LBUFFER="${LBUFFER:1}"
+  fi
+
+  {
+    # If $SUDO_EDITOR or $VISUAL are defined, then use that as $EDITOR
+    # Else use the default $EDITOR
+    local EDITOR=${SUDO_EDITOR:-${VISUAL:-$EDITOR}}
+
+    # If $EDITOR is not set, just toggle the cd prefix on and off
+    if [[ -z "$EDITOR" ]]; then
+      case "$BUFFER" in
+        cd\ -e\ *) __cd-replace-buffer "cd" "" ;;
+        cd\ *) __cd-replace-buffer "cd" "" ;;
+        *) LBUFFER="cd $LBUFFER" ;;
+      esac
+      return
+    fi
+
+    local cmd realcmd editorcmd
+
+    cmd="${${(Az)BUFFER}[1]}"
+    realcmd="${${(Az)aliases[$cmd]}[1]:-$cmd}"
+    editorcmd="${${(Az)EDITOR}[1]}"
+
+    if [[ "$realcmd" = (\$EDITOR|$editorcmd|${editorcmd:c}) \
+      || "${realcmd:c}" = ($editorcmd|${editorcmd:c}) ]] \
+      || builtin which -a "$realcmd" | command grep -Fx -q "$editorcmd"; then
+      __cd-replace-buffer "$cmd" "cd"
+      return
+    fi
+
+    case "$BUFFER" in
+      $editorcmd\ *) __cd-replace-buffer "$editorcmd" "cd" ;;
+      \$EDITOR\ *) __cd-replace-buffer '$EDITOR' "cd" ;;
+      cd\ *) __cd-replace-buffer "cd" "$EDITOR" ;;
+      cd\ *) __cd-replace-buffer "cd" "" ;;
+      *) LBUFFER="cd $LBUFFER" ;;
+    esac
+  } always {
+    # Preserve beginning space
+    LBUFFER="${WHITESPACE}${LBUFFER}"
+
+    # Redisplay edit buffer if zle is enabled
+    zle && zle redisplay
+  }
+}
+
+function __sudo-replace-buffer() {
+    local old=$1 new=$2 space=${2:+ }
+    if [[ $CURSOR -le ${#old} ]]; then
+        BUFFER="${new}${space}${BUFFER#$old }"
+        CURSOR=${#new}
+    else
+        LBUFFER="${new}${space}${LBUFFER#$old }"
+    fi
+}
+
+function sudo-command-line() {
+    [[ -z $BUFFER ]] && LBUFFER="$(fc -ln -1)"
+
+    local WHITESPACE=""
+    if [[ ${LBUFFER:0:1} = " " ]]; then
+        WHITESPACE=" "
+        LBUFFER="${LBUFFER:1}"
+    fi
+
+    {
+        local EDITOR=${SUDO_EDITOR:-${VISUAL:-$EDITOR}}
+
+        if [[ -z "$EDITOR" ]]; then
+            case "$BUFFER" in
+                sudo\ -e\ *) 
+                    __sudo-replace-buffer "sudo -e" "" 
+                ;;
+                sudo\ *) 
+                    __sudo-replace-buffer "sudo" "" 
+                ;;
+                *) 
+                    LBUFFER="sudo $LBUFFER" 
+                ;;
+            esac
+            return
+        fi
+
+        local cmd realcmd editorcmd
+        cmd="${${(Az)BUFFER}[1]}"
+        realcmd="${${(Az)aliases[$cmd]}[1]:-$cmd}"
+        editorcmd="${${(Az)EDITOR}[1]}"
+
+        if [[ "$realcmd" = (\$EDITOR|$editorcmd|${editorcmd:c}) \
+            || "${realcmd:c}" = ($editorcmd|${editorcmd:c}) ]] \
+            || builtin which -a "$realcmd" | command grep -Fx -q "$editorcmd"; then
+            __sudo-replace-buffer "$cmd" "sudo -e"
+            return
+        fi
+
+        case "$BUFFER" in
+            $editorcmd\ *) 
+                __sudo-replace-buffer "$editorcmd" "sudo -e" 
+            ;;
+            \$EDITOR\ *) 
+                __sudo-replace-buffer '$EDITOR' "sudo -e" 
+            ;;
+            sudo\ -e\ *) 
+                __sudo-replace-buffer "sudo -e" "$EDITOR" 
+            ;;
+            sudo\ *) 
+                __sudo-replace-buffer "sudo" "" 
+            ;;
+            *) 
+                LBUFFER="sudo $LBUFFER" 
+            ;;
+        esac
+    } always {
+        # Preserve beginning space
+        LBUFFER="${WHITESPACE}${LBUFFER}"
+
+        # Redisplay edit buffer (compatibility with zsh-syntax-highlighting)
+        zle && zle redisplay # only run redisplay if zle is enabled
+    }
+}
+
+zle -N cd-command-line
+zle -N sudo-command-line
+
+bindkey -M emacs "${key_seqs[escape]}${key_seqs[escape]}" sudo-command-line
+bindkey -M vicmd "${key_seqs[escape]}${key_seqs[escape]}" sudo-command-line
+bindkey -M viins "${key_seqs[escape]}${key_seqs[escape]}" sudo-command-line
+
+bindkey -M emacs "${key_seqs[alt_d]}${key_seqs[alt_d]}" cd-command-line
+bindkey -M vicmd "${key_seqs[alt_d]}${key_seqs[alt_d]}" cd-command-line
+bindkey -M viins "${key_seqs[alt_d]}${key_seqs[alt_d]}" cd-command-line

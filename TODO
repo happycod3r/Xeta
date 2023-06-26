@@ -1,0 +1,66 @@
+☐ Fix or finish aliases cli commands. @created(23-06-26 15:13)
+
+☐ Create system to indicate that $SUDO is true. @created(23-06-26 15:10)
+
+☐ Go through code and try to open as much as I can to the user by reting variables for frequently used values in the xeta.conf file.  @created(23-06-26 13:49)
+
+✔ Change zsh-theme-favlist to theme-favlist.conf and change references in the cli. @created(23-06-26 13:46) @done(23-06-26 13:51)
+
+✔ Change version.data to version.conf @created(23-06-26 13:52) @done(23-06-26 13:55)
+
+☐ Clean up and update directories being added to fpath. @created(23-06-26 13:14)
+
+✔ Remove xfunctions. @created(23-06-26 13:12) @done(23-06-26 15:11)
+
+✔ Move xfiles to config and change to .conf. @created(23-06-26 13:11) @done(23-06-26 15:14)
+
+✔ Remove omz plugin functionality @created(23-06-26 13:11) @done(23-06-26 13:55)
+
+/////////////////////////////////////////
+
+☐ Implement user pass system for SUDO. @critical ``@created(23-06-23 00:42)
+
+☐ Locate and fix .pre-xeta formally known as pre-oh-my-zsh functionality in cli. @critical  @created(23-06-22 02:33)
+
+☐ Locate and setup the creation process of the .zshrc file. @critical @created(23-06-22 02:35)
+
+☐ Restore template directory from omz and its linked code. @critical @created(23-06-19 23:50)
+
+☐ Replace git status in lambda with stand alone git-status. @low @created(23-06-20 10:31)
+
+☐ Xeta::diable/enable plugins cli not working. @created(23-06-21 13:34)
+
+☐ Make sure code using the templates folder can find it in it's new directory xenv/ @created(23-06-21 13:55)
+
+☐ Revise templates. @created(23-06-21 13:56)
+
+☐ Test xeta cli. @created(23-06-21 13:58)
+
+☐ Create script giving credit and thanks to the creators of all the pieces that whent into xeta. @critical @created(23-06-22 02:39)
+
+☐ Assimilate what I can of spaceship prompt. @low @created(23-06-22 02:42)
+
+☐ IDEA: I should maybe put spaceship, p10k and xprompt in themes and create a way to switch between them, Or use the existing theme switching capability. @idea @critical @created(23-06-22 02:42)
+
+✔ Merge .p10k.zsh ---> xprompt.zsh @created(23-06-14 20:42) @done(23-06-19 15:03)
+
+✔ Validate and source hooks. @created(23-06-19 15:04) @done(23-06-19 18:00)
+
+✔ Clean up config. @created(23-06-19 15:05) @done(23-06-19 18:00)
+
+✔ Create USE_ZSH_HOOKS option. @created(23-06-19 19:13) @done(23-06-19 19:13)
+
+✔ Fix plugins --> plugs. @created(23-06-19 15:10) @done(23-06-19 19:40)
+
+✔ Change all ZSH_* to X* @created(23-06-19 15:23)\ @done(23-06-19 20:14)
+
+✔ Reinclude omz tools and connect them to xenv directory. @created(23-06-19 19:39) @done(23-06-21 13:52)
+
+✔ Reformat and tweak tools for xeta. @created(23-06-19 19:40) @done(23-06-21 13:52)
+
+✔ Fix COMPLETION_WAITING_DOTS. It seems to not be showing but they may be and my pc is just too fast to see it?  @created(23-06-19 20:04) @done(23-06-21 13:52)
+
+✔  Create xeta::uninstall cli option. @created(23-06-21 13:53) @done(23-06-21 23:48)
+
+✔ Finish xeta::plugin/s::path option. @created(23-06-21 13:54) @done(23-06-21 19:55)
+

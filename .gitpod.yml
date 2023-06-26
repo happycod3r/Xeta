@@ -1,0 +1,9 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - init: |
+      export EDITOR="command gp open -w" VISUAL="command gp open -w"
+      cp -f /workspace/xeta/template/zshrc.zsh-template ~/.zshrc
+      ln -sf /workspace/xeta ~/.xeta
+    command: exec zsh
