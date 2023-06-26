@@ -134,14 +134,14 @@ function _init() {
     }
     
     function _init::validate_plugins() {
-        # Checks validity of the .plug file.
+        # Checks validity of the .plugin.zsh file.
         function is_plugin() {
             local base_dir=$1
             local name=$2
             builtin test -f $base_dir/$name/$name.plugin.zsh
         }
 
-        # Make sure we only load .plug files and from the correct path.
+        # Make sure we only load .plugin.zsh files and from the correct path.
         for plugin in $plugins; do
             if is_plugin "$XPLUGS" "$plugin"; then
                 fpath=("$XPLUGS/$plugin" $fpath)

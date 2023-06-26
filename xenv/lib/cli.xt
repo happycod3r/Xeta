@@ -33,6 +33,7 @@ function _xeta {
         'aliases:Manage aliases'
         'edit:View and Edit config files'
         'extract:Extract archived files'
+        'uninstall:Uninstall Xeta'
         'credits:View credits to all the things that went into xeta.'
     )
  
@@ -81,7 +82,7 @@ function _xeta {
                     # if command is "disable", only offer already enabled plugins
                     valid_plugins=($plugins)
                 else
-                    valid_plugins=("$XPLUGS"/*/{_*,*.plug}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plug}(-.N:h:t))
+                    valid_plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
                     # if command is "enable", remove already enabled plugins
                     [[ "${words[3]}" = enable ]] && valid_plugins=(${valid_plugins:|plugins})
                 fi
@@ -90,17 +91,17 @@ function _xeta {
             ;;
             plugin::info)
                 local -aU plugins
-                plugins=("$XPLUGS"/*/{_*,*.plug}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plug}(-.N:h:t))
+                plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
                 _describe 'plugin' plugins 
             ;;
             plugin::path)
                 local -aU plugins
-                plugins=("$XPLUGS"/*/{_*,*.plug}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plug}(-.N:h:t))
+                plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
                 _describe 'plugin' plugins
             ;;
             plugin::remove)
                 local -aU plugins
-                plugins=("$XPLUGS"/*/{_*,*.plug}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plug}(-.N:h:t))
+                plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
                 _describe 'plugin' plugins     
             ;;
             theme::(set|use|preview|fav|unfav))
@@ -118,7 +119,7 @@ function _xeta {
                     # if command is "disable", only offer already enabled plugins
                     valid_plugins=($plugins)
                 else
-                    valid_plugins=("$XPLUGS"/*/{_*,*.plug}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plug}(-.N:h:t))
+                    valid_plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
                     # if command is "enable", remove already enabled plugins
                     [[ "${words[3]}" = enable ]] && valid_plugins=(${valid_plugins:|plugins})
                 fi
@@ -503,10 +504,10 @@ function _xeta::plugin::path {
         return 1
     fi
 
-    # Make sure we only load .plug files and from the correct path.
+    # Make sure we only load .plugin.zsh files and from the correct path.
     for _plugin in $plugins; do
         if [[ "$_plugin" == "$1" ]]; then
-            io::notify "\"%s\" is located in the following location:${reset_color}\n%s\n" "$_plugin" "${XPLUGS}/$1/$1.plug"
+            io::notify "\"%s\" is located in the following location:${reset_color}\n%s\n" "$_plugin" "${XPLUGS}/$1/$1.plugin.zsh"
         elif [[ "$_plugin" != "$1" ]]; then
             io::notify "plugin \"%s\" not found" "$1"
             return
@@ -521,7 +522,7 @@ function _xeta::plugin::remove {
         return 1
     fi
 
-    # Make sure we only load .plug files and from the correct path.
+    # Make sure we only load .plugin.zsh files and from the correct path.
     for _plugin in $plugins; do
         if [[ "$_plugin" == "$1" ]]; then   
             io::yesno "This will remove the $1 plugin from your computer. Do you wish to continue? "
@@ -1006,6 +1007,8 @@ function _xeta::aliases {
     list                       List all defined aliases
     add <alias_name>           Define a new alias
     remove <alias_name>        Remove a defined alias
+    name_for <command>         Get the alias name for a command
+    contains <string>         Get all aliases containing a string
 EOF
         return 1
     }
@@ -1032,7 +1035,9 @@ function _xeta::aliases::add {
         echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <alias_name> <alias_body>"
         return 1
     fi
-    alias $1="$2"    
+    
+    echo "alias $1=\"$2\"" >> "$XCONFIG/aliases.conf" && io::notify "Alias saved."
+    echo
 }
 
 function _xeta::aliases::remove {

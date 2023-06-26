@@ -113,11 +113,11 @@ zsh_hooks=(
 #/////////////////////////////////////////////////////////////////////
  
 #//////////// Theme Settings //////
-USE_XPROMPT=false # If set to true this will override $XTHEME
-XTHEME="agnoster" # set by `xeta-framework cli`
+XTHEME="sunrise" # set by `xeta-framework cli`
 XTHEME_RANDOM_CANDIDATES=()
 XTHEME_RANDOM_IGNORED=()
 XTHEME_RANDOM_QUIET=true # Set to false to se the theme name upon loading.
+USE_XPROMPT=false # If set to true this will override $XTHEME
 ZSH_THEME_GIT_PROMPT_CLEAN=''
 ZSH_THEME_GIT_PROMPT_DIRTY='*'
 ZSH_THEME_GIT_PROMPT_PREFIX=$'%{\C-[[36m%}'
@@ -202,7 +202,7 @@ xtx_files=(
 # plugins array. eg. good = ( plug1 plug2 plug3 ) bad = (plug1 plug2 plug3)
 plugins=( 
  
-)  
+ vscode)  
 #/////////////////////////////////////////////////////////////////////
 
 #//////////// ZSH Auto Suggestions Settings //////
