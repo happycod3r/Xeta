@@ -8,11 +8,6 @@ function uninstall_xeta() {
   env XETA="$XETA" sh "${XTOOLS}/uninstall.sh"
 }
 
-function upgrade_xeta() {
-  echo >&2 "${fg[yellow]}Note: \`$0\` is deprecated. Use \`xeta update\` instead.$reset_color"
-  xeta update
-}
-
 function print_config() {
     echo "$(cat ${XCONFIG}/xeta.conf)"
 }
@@ -31,7 +26,9 @@ function open_command() {
         linux*)   
             [[ "$(uname -r)" != *icrosoft* ]] && open_cmd='nohup xdg-open' || {
                 open_cmd='cmd.exe /c start ""'
-                [[ -e "$1" ]] && { 1="$(wslpath -w "${1:a}")" || return 1 }
+                [[ -e "$1" ]] && { 
+                    1="$(wslpath -w "${1:a}")" || return 1 
+                    }
             } 
         ;;
         msys*)    
@@ -83,21 +80,6 @@ function take() {
   else
     takedir "$@"
   fi
-}
-
-#
-# Get the value of an alias.
-#
-# Arguments:
-#    1. alias - The alias to get its value from
-# STDOUT:
-#    The value of alias $1 (if it has one).
-# Return value:
-#    0 if the alias was found,
-#    1 if it does not exist
-#
-function alias_value() {
-    (( $+aliases[$1] )) && echo $aliases[$1]
 }
 
 #

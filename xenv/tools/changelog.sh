@@ -580,9 +580,9 @@ else
     output=$(main "$@")
     formatted_output=$(echo "$output" | sed 's/\[build|chore|ci|docs|feat|fix|perf|refactor|style|test\]/\n\[build|chore|ci|docs|feat|fix|perf|refactor|style|test\]/g')
     changelog="${XLOG}/CHANGELOG.md"
-    echo "$changelog"
+    echo 
     echo "$formatted_output" && { 
         echo "$formatted_output" >> "${changelog}"
-    }
-
+    }>&2
+    echo 
 fi

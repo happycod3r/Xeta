@@ -66,7 +66,7 @@ function _xeta {
                 _describe 'command' subcmds  
             ;;
             aliases)
-                subcmds=('list:List aliases' 'add:Define a new alias' 'remove:Remove a defined alias' 'name_for:Get the alias name for a command' 'containing:Get aliases containing the specified command')
+                subcmds=('list:List aliases' 'add:Define a new alias' 'remove:Remove a defined alias' 'cmd_for:Get the command for an alias name' 'name_for:Get the alias name for a command' 'containing:Get aliases containing the specified command')
                 _describe 'command' subcmds
             ;;
             edit)
@@ -1011,8 +1011,9 @@ function _xeta::aliases {
     list                       List all defined aliases
     add <alias_name>           Define a new alias
     remove <alias_name>        Remove a defined alias
+    cmd_for <alias_name>       Get the command for an alias name
     name_for <command>         Get the alias name for a command
-    contains <string>         Get all aliases containing a string
+    contains <string>          Get all aliases containing a string
 EOF
         return 1
     }
@@ -1064,6 +1065,14 @@ function _xeta::aliases::remove {
         io::notify "The alias you provided doesn't seem to exist. Maybe check your aliases file for the spelling?"
         return 1
     fi
+}
+
+function _xeta::aliases::cmd_for {
+    (( $+aliases[$1] )) && {
+        io::notify "${reset_color}The following alias was found:\n"
+        io::notify "${reset_color}$aliases[$1]"
+        echo 
+    }
 }
 
 function _xeta::aliases::name_for {  
@@ -1143,7 +1152,7 @@ function _xeta::aliases::containing {
     }
     '
     acs "$1"
-} 
+}
 
 function _xeta::extract {
     setopt localoptions noautopushd
