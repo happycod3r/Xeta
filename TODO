@@ -8,7 +8,7 @@
 
 ✔ Change version.data to version.conf @created(23-06-26 13:52) @done(23-06-26 13:55)
 
-☐ Clean up and update directories being added to fpath. @created(23-06-26 13:14)
+✔ Clean up and update directories being added to fpath. @created(23-06-26 13:14) @done(23-06-26 17:32)
 
 ✔ Remove xfunctions. @created(23-06-26 13:12) @done(23-06-26 15:11)
 

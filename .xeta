@@ -31,13 +31,8 @@ function _init() {
         unset config_file
     }
 
-    function _init::load_configs() {
+    function _init::load_xeta_config() {
         [[ -f "${XETA}/xenv/config/xeta.conf" ]] && builtin source "${XETA}/xenv/config/xeta.conf"
-        [[ -f "${XCONFIG}/aliases.conf" ]] && builtin source "${XCONFIG}/aliases.conf"
-        [[ -f "${XCONFIG}/globals.conf" ]] && builtin source "${XCONFIG}/globals.conf"
-        [[ -f "${XCONFIG}/jump-points.conf.conf" ]] && builtin source "${XCONFIG}/jump-points.conf"
-        [[ -f "${XCONFIG}/key-binds.conf" ]] && builtin source "${XCONFIG}/key-binds.conf"
-        [[ -f "${XCONFIG}/path.conf" ]] && builtin source "${XCONFIG}/path.conf"
     }
 
     function _init::shield_from_non_zsh_exec() {
@@ -280,6 +275,14 @@ EOF
         fi
     }
 
+    function _init::load_user_configs {
+        [[ -f "${XCONFIG}/aliases.conf" ]] && builtin source "${XCONFIG}/aliases.conf"
+        [[ -f "${XCONFIG}/globals.conf" ]] && builtin source "${XCONFIG}/globals.conf"
+        [[ -f "${XCONFIG}/jump-points.conf.conf" ]] && builtin source "${XCONFIG}/jump-points.conf"
+        [[ -f "${XCONFIG}/key-binds.conf" ]] && builtin source "${XCONFIG}/key-binds.conf"
+        [[ -f "${XCONFIG}/path.conf" ]] && builtin source "${XCONFIG}/path.conf"
+    }
+
     function _init::set_completion_colorls() {
         # set completion colors to be the same as `ls`, after theme has been loaded
         [[ -z "$LS_COLORS" ]] || zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
@@ -315,24 +318,33 @@ EOF
         fi
     }
     
-    _init::validate_configs
-    _init::load_configs
     _init::shield_from_non_zsh_exec
+    _init::validate_configs
+    # Needs to load first as functions below rely on variables defined in
+    # the xeta config file. 
+    _init::load_xeta_config
+
     _init::create_cache_dirs
     _init::add_directory_tree_to_fpath
     _init::enable_completions
+    
     _init::validate_xtx_files
     _init::validate_plugins
+    
     _init::get_short_hostname
     _init::set_version
+
     _init::setup_metadata 
+    
     _init::load_xt_files
     _init::load_xtx_files
     _init::load_plugins
     _init::load_themes
     _init::load_hooks
-    _init::set_completion_colorls
+    _init::load_user_configs
     _init::load_dependency_scripts
+
+    _init::set_completion_colorls
     _init::check_sudo
 }
 
