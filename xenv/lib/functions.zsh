@@ -83,21 +83,6 @@ function take() {
 }
 
 #
-# Try to get the value of an alias,
-# otherwise return the input.
-#
-# Arguments:
-#    1. alias - The alias to get its value from
-# STDOUT:
-#    The value of alias $1, or $1 if there is no alias $1.
-# Return value:
-#    Always 0
-#
-function try_alias_value() {
-    alias_value "$1" || echo "$1"
-}
-
-#
 # Set variable "$1" to default value "$2" if "$1" is not yet defined.
 #
 # Arguments:

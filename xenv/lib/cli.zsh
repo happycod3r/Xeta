@@ -1072,7 +1072,7 @@ function _xeta::aliases::cmd_for {
         io::notify "${reset_color}The following alias was found:\n"
         io::notify "${reset_color}$aliases[$1]"
         echo 
-    }
+    } || io::notify "${reset_color}$1 isn't a defined alias!"
 }
 
 function _xeta::aliases::name_for {  
