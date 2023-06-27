@@ -281,23 +281,5 @@ function git_repo_name() {
   fi
 }
 
-#````````````````````````````````````````````````````
-
-# From xprompt/.xprompt
-# Prints the git status of the current working directory.
-function print_git_status() {
-    gitstatus_start MY
-    gitstatus_query -d $PWD MY
-    typeset -m 'VCS_STATUS_*'
-}
-
-function commit() {
-    msg="$1"
-    if [[ -z "$msg" ]]; then
-        return 1
-    fi
-    git add . || { echo "Error adding files!"; return 1;}
-    git commit -m "$msg" && {
-        echo "Commit was successful!\nWould you like to push the commit?"
-    }   
-}
+typeset -gA COMMIT_TYPES
+COMMIT_TYPES=(build chore ci docs feat fix perf refactor style test)

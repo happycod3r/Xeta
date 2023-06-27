@@ -32,6 +32,7 @@ function _xeta {
         'version:Show the version'
         'aliases:Manage aliases'
         'edit:View and Edit config files'
+        'git:Manage a repository'
         'extract:Extract archived files'
         'uninstall:Uninstall Xeta'
         'stats:Show various stats'
@@ -74,6 +75,10 @@ function _xeta {
                 subcmds=('zshrc:Edit your .zshrc' 'bashrc:Edit your .bashrc' 'config:Edit your xeta.conf' 'aliases:Edit your aliases.conf' 'globals:Edit your globals.conf' 'keybinds:Edit your key-binds.conf' 'path:Edit your path.conf' 'jumppoints:Edit your jump-points.conf' 'favs:Edit theme-favlist.conf')
                 _describe 'command' subcmds
             ;;
+            git)
+                subcmds=('commit:Create a new commit' 'status:Print repository status')
+                _describe 'command' subcmds
+            ;;
             stats)
                 subcmds=('cmds:View stats on the top 20 most used commands')
                 _describe 'command' subcmds
@@ -81,6 +86,10 @@ function _xeta {
         esac
     elif (( CURRENT == 4 )); then
         case "${words[2]}::${words[3]}" in
+            git::(commit))
+                subcmds=('all:Commit all changes' 'specific:Commit specific changes')
+                _describe 'command' subcmds
+            ;;
             plugin::(disable|enable|load))
                 local -aU valid_plugins
                 if [[ "${words[3]}" = disable ]]; then
@@ -1437,10 +1446,79 @@ function _xeta::stats {
     $0::$command "$@"
 }
 
-function _xeta::stats::cmds {
+function _xeta::stats::cmds {   
     io::notify "The top 20 most commands${reset_color}"
     fc -l 1 \
     | awk '{ CMD[$2]++; count++; } END { for (a in CMD) print CMD[a] " " CMD[a]*100/count "% " a }' \
     | grep -v "./" | sort -nr | head -n 20 | column -c3 -s " " -t | nl
     echo 
 }
+
+function _xeta::git {
+    if [[ -z "$1" ]]; then
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
+        return 1
+    fi
+    local command="$1"
+    shift
+
+    $0::$command "$@"
+}
+
+function _xeta::git::status { 
+    STATUS="$(
+        gitstatus_start MY
+        gitstatus_query -d $PWD MY
+        typeset -m 'VCS_STATUS_*'    
+    )"
+    if [[ "$STATUS" == "VCS_STATUS_RESULT=norepo-sync" ]]; then
+        io::notify "
+ No repository detected @:${reset_color}${PWD}\033[1;36m
+ Status: ${reset_color}
+ $STATUS"
+        echo
+    else
+        io::notify "
+ Repository @:${reset_color}${PWD}\033[1;36m
+ Status: ${reset_color}
+ $STATUS"
+        echo
+    fi
+}
+
+function _xeta::git::commit {
+    
+    if [[ -z "$1" ]]; then
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
+        return 1
+    fi
+    local command="$1"
+    shift
+
+    $0::$command "$@"
+}
+
+function _xeta::git::commit::all {
+    
+    _type="$1"
+    msg="$2" 
+    if [[ -z "$msg" || -z "$_type" ]]; then 
+        io::notify "Commit message and type is missing!"     
+        return 1 
+    fi
+    git add . || {echo "Error adding files!"; return 1;}
+    git commit -m "[${_type}] $msg" && {echo "Commit was successfull!"; return 0;}   
+}
+
+function _xeta::git::commit::specific {
+    msg="$1"
+    if [[ -z "$msg" ]]; then
+        return 1
+    fi
+    git add . || { echo "Error adding files!"; return 1;}
+    git commit -m "$msg" && {
+        echo "Commit was successfull!"
+        return 0
+    }   
+}
+

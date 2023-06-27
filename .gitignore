@@ -12,10 +12,12 @@
 *.tar.gz
 *.deb
 
+NOTES.md
 .DS_Store
 .vscode
 .idea
 .xmaster
+
 
 dev/
 tmp/

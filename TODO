@@ -1,6 +1,13 @@
+☐ @critical  Clean up cli.
+    - Make everything uniform
+    - add error/argument checks to all functions 
+@created(23-06-27 10:12)
+
+☐ Fix all usage statements in the cli. @created(23-06-27 10:16)
+
 ✔ Fix or finish aliases cli commands. @created(23-06-26 15:13) @done(23-06-26 17:25)
 
-☐ Create system to indicate that $SUDO is true. @created(23-06-26 15:10)
+☐ @high  Create system to indicate that $SUDO is true. @created(23-06-26 15:10)
 
 ☐ Go through code and try to open as much as I can to the user by reting variables for frequently used values in the xeta.conf file.  @created(23-06-26 13:49)
 
@@ -36,7 +43,7 @@
 
 ☐ Test xeta cli. @created(23-06-21 13:58)
 
-☐ Create script giving credit and thanks to the creators of all the pieces that whent into xeta. @critical @created(23-06-22 02:39)
+☐ Create script giving credit and thanks to the creators of all the pieces that went into xeta. @critical @created(23-06-22 02:39)
 
 ☐ Assimilate what I can of spaceship prompt. @low @created(23-06-22 02:42)
 
