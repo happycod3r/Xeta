@@ -15,12 +15,12 @@ function fzf_setup_using_base_dir() {
 
     # Auto-completion
     if [[ -o interactive && "$DISABLE_FZF_AUTO_COMPLETION" != "true" ]]; then
-        source "${XLIB}/completion.xt" 2> /dev/null
+        source "${XLIB}/completion.zsh" 2> /dev/null
     fi
 
     # Key bindings
     if [[ "$DISABLE_FZF_KEY_BINDINGS" != "true" ]]; then
-        source "${XLIB}/key-bindings.xt"
+        source "${XLIB}/key-bindings.zsh"
     fi
 }
 

@@ -240,10 +240,10 @@ function _xeta::changelog {
 EOF
         return 1
     fi
+    builtin cd $XETA
+    sudo zsh "${XTOOLS}/changelog.sh" "$version" "${2:-}" "$format"
 
-    "$XTOOLS/changelog.sh" "$version" "${2:-}" "$format"
-
-}
+} 
 
 function _xeta::plugin {
     (( $# > 0 && $+functions[$0::$1] )) || {

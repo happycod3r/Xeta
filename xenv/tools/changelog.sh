@@ -528,7 +528,7 @@ function main {
     eval "raw_fields=(\"\${(@ps:$SEP:)raw_commit}\")"
     hash="${raw_fields[1]}"
     refs="${raw_fields[2]}"
-    subject="${raw_fields[3]}"
+    subject="${raw_fields[3]}"  
     body="${raw_fields[4]}"
 
     # If we find a new release (exact tag)
@@ -559,9 +559,13 @@ function main {
   fi
 }
 
+local output
+
 # Use raw output if stdout is not a tty
 if [[ ! -t 1 && -z "$3" ]]; then
-  main "$1" "$2" --raw
+  output=$("$1" "$2" --raw)
 else
-  main "$@"
+  output=$(main "$@")
+  formatted_output=$(echo "$output" | sed 's/\[chore\]/\n\[chore\]/g')
+  echo $formatted_output
 fi

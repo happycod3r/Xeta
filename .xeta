@@ -188,7 +188,7 @@ function _init() {
 
         # Check if ZSH_COMPFIX = true || false.
         if [[ "$ZSH_DISABLE_COMPFIX" != true ]]; then
-            builtin source "$XLIB/compfix.xt"
+            builtin source "$XLIB/compfix.zsh"
             # If false, load only from secure directories
             compinit -i -d "$ZSH_COMPDUMP"
             # If completion insecurities exist, warn the user
@@ -216,11 +216,11 @@ EOF
         fi
     }
 
-    function _init::load_xt_files() {
-        for xt_file in "${XLIB}"/*.xt; do
-            builtin source "${XLIB}/${xt_file:t}"
+    function _init::load_library_files() {
+        for lib_file in "${XLIB}"/*.zsh; do
+            builtin source "${XLIB}/${lib_file:t}"
         done
-        unset xt_file
+        unset lib_file
     }
 
     function _init::load_xtx_files() {
@@ -336,7 +336,7 @@ EOF
 
     _init::setup_metadata 
     
-    _init::load_xt_files
+    _init::load_library_files
     _init::load_xtx_files
     _init::load_plugins
     _init::load_themes
