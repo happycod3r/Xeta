@@ -1506,8 +1506,10 @@ function _xeta::git::commit::all {
         io::notify "Commit message and type is missing!"     
         return 1 
     fi
-    git add . || {echo "Error adding files!"; return 1;}
-    git commit -m "[${_type}] $msg" && {echo "Commit was successfull!"; return 0;}   
+    
+    git add . || {io::err "Error adding files!"; return 1;}
+    git commit -m "[${_type}] $msg" || {io::err "Commit was unsuccessfull!"; return 1;}
+    io::notify "Commit was successful!"    
 }
 
 function _xeta::git::commit::specific {
