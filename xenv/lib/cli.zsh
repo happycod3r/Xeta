@@ -34,6 +34,7 @@ function _xeta {
         'edit:View and Edit config files'
         'extract:Extract archived files'
         'uninstall:Uninstall Xeta'
+        'stats:Show various stats'
         'credits:View credits to all the things that went into xeta.'
     )
  
@@ -71,6 +72,10 @@ function _xeta {
             ;;
             edit)
                 subcmds=('zshrc:Edit your .zshrc' 'bashrc:Edit your .bashrc' 'config:Edit your xeta.conf' 'aliases:Edit your aliases.conf' 'globals:Edit your globals.conf' 'keybinds:Edit your key-binds.conf' 'path:Edit your path.conf' 'jumppoints:Edit your jump-points.conf' 'favs:Edit theme-favlist.conf')
+                _describe 'command' subcmds
+            ;;
+            stats)
+                subcmds=('cmds:View stats on the top 20 most used commands')
                 _describe 'command' subcmds
             ;;
         esac
@@ -219,6 +224,7 @@ function _xeta::help {
         uninstall                       Uninstall Xeta 
         aliases <command>               Manage aliases  
         edit <file_name>                View and edit config files
+        stats <command>                 View various statistics
         extract <-option> <file_name>   Extract archived files   
         credits
 EOF
@@ -1418,4 +1424,23 @@ function _xeta::credits {
     [0;1;33;93mSpaceship Prompt v4.14.0${reset_color}
         https://spaceship-prompt.sh/
         "
+}
+
+function _xeta::stats {
+    if [[ -z "$1" ]]; then
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
+        return 1
+    fi
+    local command="$1"
+    shift
+
+    $0::$command "$@"
+}
+
+function _xeta::stats::cmds {
+    io::notify "The top 20 most commands${reset_color}"
+    fc -l 1 \
+    | awk '{ CMD[$2]++; count++; } END { for (a in CMD) print CMD[a] " " CMD[a]*100/count "% " a }' \
+    | grep -v "./" | sort -nr | head -n 20 | column -c3 -s " " -t | nl
+    echo 
 }
