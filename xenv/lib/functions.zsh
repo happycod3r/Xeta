@@ -4,14 +4,6 @@ function zsh_stats() {
     | grep -v "./" | sort -nr | head -n 20 | column -c3 -s " " -t | nl
 }
 
-function uninstall_xeta() {
-  env XETA="$XETA" sh "${XTOOLS}/uninstall.sh"
-}
-
-function print_config() {
-    echo "$(cat ${XCONFIG}/xeta.conf)"
-}
-
 function open_command() {
     local open_cmd
 

@@ -992,6 +992,7 @@ function _xeta::version {
 }   
 
 function _xeta::uninstall {
+    function uninstall_xeta() { env XETA="$XETA" sh "${XTOOLS}/uninstall.sh"; }
     # Implement pin system.
     io::notify "Hello! Sorry to see you go :(${reset_color}\n"
     io::yesno "are you sure you want to uninstall Xeta? (y/n)" && {
