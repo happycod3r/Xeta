@@ -1501,26 +1501,27 @@ function _xeta::git::commit {
 function _xeta::git::commit::all {
     
     _type="$1"
-    msg="$2" 
-    if [[ -z "$msg" || -z "$_type" ]]; then 
+    _msg="$2" 
+    if [[ -z "$_msg" || -z "$_type" ]]; then 
         io::notify "Commit message and type is missing!"     
         return 1 
     fi
     
     git add . || {io::err "Error adding files!"; return 1;}
-    git commit -m "[${_type}] $msg" || {io::err "Commit was unsuccessfull!"; return 1;}
+    git commit -m "[${_type}] $_msg" || {io::err "Commit was unsuccessfull!"; return 1;}
     io::notify "Commit was successful!"    
 }
 
 function _xeta::git::commit::specific {
-    msg="$1"
-    if [[ -z "$msg" ]]; then
+    _type="$1"
+    _msg="$2" 
+    shift 2
+    files=(${@})
+    if [[ -z "$_msg" ]]; then
         return 1
     fi
-    git add . || { echo "Error adding files!"; return 1;}
-    git commit -m "$msg" && {
-        echo "Commit was successfull!"
-        return 0
-    }   
+    git add "${files}" || { io::err "Error adding files!"; return 1;}
+    git commit -m "[${_type}] $_msg" || {io::err "Commit was unsuccessfull!"; return 1;}
+    io::notify "Commit was successful!"
 }
 
