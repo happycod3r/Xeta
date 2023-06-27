@@ -299,12 +299,5 @@ function commit() {
     git add . || { echo "Error adding files!"; return 1;}
     git commit -m "$msg" && {
         echo "Commit was successful!\nWould you like to push the commit?"
-        read -p "(y/n): " answer
-        [[ "$answer" == y ]] && {
-            git push oigin main
-            return 0 
-        }
-        return 0
-
-    }
+    }   
 }
