@@ -241,7 +241,7 @@ EOF
         return 1
     fi
     builtin cd $XETA
-    sudo zsh "${XTOOLS}/changelog.sh" "$version" "${2:-}" "$format"
+    sudo zsh "${XTOOLS}/changelog.sh" "$version" "${2:-}" "$format" "$XLOG"
 
 } 
 

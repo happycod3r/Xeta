@@ -559,13 +559,30 @@ function main {
   fi
 }
 
+# build     "Build system"
+# chore     "Chore"
+# ci        "CI"
+# docs      "Documentation"
+# feat      "Features"
+# fix       "Bug fixes"
+# perf      "Performance"
+# refactor  "Refactor"
+# style     "Style"
+# test      "Testing"
+
 local output
 
 # Use raw output if stdout is not a tty
 if [[ ! -t 1 && -z "$3" ]]; then
-  output=$("$1" "$2" --raw)
+  #output=$("$1" "$2" --raw)
 else
-  output=$(main "$@")
-  formatted_output=$(echo "$output" | sed 's/\[chore\]/\n\[chore\]/g')
-  echo $formatted_output
+    XLOG=$4
+    output=$(main "$@")
+    formatted_output=$(echo "$output" | sed 's/\[build|chore|ci|docs|feat|fix|perf|refactor|style|test\]/\n\[build|chore|ci|docs|feat|fix|perf|refactor|style|test\]/g')
+    changelog="${XLOG}/CHANGELOG.md"
+    echo "$changelog"
+    echo "$formatted_output" && { 
+        echo "$formatted_output" >> "${changelog}"
+    }
+
 fi
