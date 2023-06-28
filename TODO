@@ -1,3 +1,15 @@
+☐ Create xeta::disable xeta::disable::command @created(23-06-28 00:35)
+
+☐ Make aliases for cli commands. @created(23-06-28 00:09)
+
+☐ @critical Look over xeta::pr commands. Not sure if they target xeta specifically or any repo? @created(23-06-27 23:25)
+
+☐ In xeta::plugin::Remove I need to also remove the plugin from the plugin array before or after removing it. I should probably just make the call to xeta::plugin::disable to accomplish it. @created(23-06-27 23:22)
+
+☐ Write cli README.md @created(23-06-27 23:24)
+
+☐ Make functionality to backup xeta nd archive it before uninstalling and in general if the user wants. xeta::backup @created(23-06-27 23:09)
+
 ☐ Create git credential helper system. @created(23-06-27 21:53)
 
 ☐ @critical  Clean up cli.

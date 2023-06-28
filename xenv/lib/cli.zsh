@@ -223,20 +223,122 @@ function _xeta::help {
         Available commands:
 
         help                            Print this help message
-        changelog                       Print the changelog
-        plugin <command>                Manage plugins
-        pr     <command>                Manage Xeta Pull Requests
-        reload                          Reload the current zsh session
-        theme  <command>                Manage themes
-        update                          Update Xeta
+        credits                         Displays credits and thanks
         version                         Show the version
-        uninstall                       Uninstall Xeta 
-        aliases <command>               Manage aliases  
+        reload                          Reload the current zsh session
+        update                          Update Xeta
+        backup                          Backup xeta and your cnfig files
+        uninstall                       Uninstall Xeta
+        changelog                       Print the changelog
+        pr <command>                    Manage Xeta Pull Requests
+        plugin <command>                Manage plugins
+        theme <command>                 Manage themes 
+        aliases <command>               Manage aliases
+        extract <-option> <file_name>   Extract archived files
         edit <file_name>                View and edit config files
         stats <command>                 View various statistics
-        extract <-option> <file_name>   Extract archived files   
-        credits
+        git <command>                   Manage a git repository   
 EOF
+}
+
+function _xeta::credits {
+    echo -e "
+    [0;1;35;95mOh-My-Zsh v5.0.8${reset_color}
+        https://github.com/ohmyzsh 
+    [0;1;31;91mZsh-Syntax Highlighting v0.8.0${reset_color}
+        https://github.com/zsh-users/zsh-syntax-highlighting
+    [0;1;33;93mZsh-Auto-Suggestions v0.7.0${reset_color}
+        https://github.com/zsh-users/zsh-autosuggestions 
+    [0;1;32;92mZsh-Navigation-Tools v5.0.0${reset_color}
+        https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/zsh-navigation-tools
+    [0;1;36;96mfzf (Fuzzy Finder) v0.42.0${reset_color}
+        https://github.com/junegunn/fzf
+    [0;1;35;95mAutoenv/Direnv v0.3.0${reset_color}
+        https://github.com/hyperupcall/autoenv 
+    [0;1;31;91mPowerlevel10K v1.19.0${reset_color}
+        https://github.com/romkatv/powerlevel10k
+    [0;1;33;93mSpaceship Prompt v4.14.0${reset_color}
+        https://spaceship-prompt.sh/
+        "
+}
+
+function _xeta::version {
+    (
+        builtin cd -q "$XETA"
+
+        # Get the version name:
+        # 1) try tag-like version
+        # 2) try branch name
+        # 3) try name-rev (tag~<rev> or branch~<rev>)
+        local version version_file
+        version_file="${XCONFIG}/version.conf"
+
+        if [[ -n "$XETA_VERSION" && ! -z "$XETA_VERSION" ]]; then
+            version="$XETA_VERSION"
+            printf "%s\n" "$version"
+            return
+        else
+            version=$(command git describe --tags HEAD 2>/dev/null) \
+            || version=$(command git sy mbolic-ref --quiet --short HEAD 2>/dev/null) \
+            || version=$(command git name-rev --no-undefined --name-only --exclude="remotes/*" HEAD 2>/dev/null) \
+            || version="<detached>"
+
+            # Get short hash for the current HEAD
+            local commit=$(command git rev-parse --short HEAD 2>/dev/null)
+            # Show version and commit hash
+            printf "%s (%s)\n" "$version" "$commit"
+        fi
+    )
+} 
+
+function _xeta::reload {
+    # Delete current completion cache
+    command rm -f $_comp_dumpfile $ZSH_COMPDUMP
+
+    # Old zsh versions don't have ZSH_ARGZERO
+    local zsh="${ZSH_ARGZERO:-${functrace[-1]%:*}}"
+    # Check whether to run a login shell
+    [[ "$zsh" = -* || -o login ]] && exec -l "${zsh#-}" || exec "$zsh"
+}
+
+function _xeta::update {
+    local last_commit=$(builtin cd -q "$XETA"; git rev-parse HEAD)
+
+    # Run update script
+    zstyle -s ':xeta:update' verbose verbose_mode || verbose_mode=default
+    if [[ "$1" != --unattended ]]; then
+        XETA="$XETA" command zsh -f "$XTOOLS/upgrade.sh" -i -v $verbose_mode || return $?
+    else
+        XETA="$XETA" command zsh -f "$XTOOLS/upgrade.sh" -v $verbose_mode || return $?
+    fi
+
+    # Update last updated file
+    zmodload zsh/datetime
+    echo "LAST_EPOCH=$(( EPOCHSECONDS / 60 / 60 / 24 ))" >! "${XCACHE}/.zsh-update"
+    # Remove update lock if it exists
+    command rm -rf "$XLOG/update.lock"
+
+    # Restart the zsh session if there were changes
+    if [[ "$1" != --unattended && "$(builtin cd -q "$XETA"; git rev-parse HEAD)" != "$last_commit" ]]; then
+        # Old zsh versions don't have ZSH_ARGZERO
+        local zsh="${ZSH_ARGZERO:-${functrace[-1]%:*}}"
+        # Check whether to run a login shell
+        [[ "$zsh" = -* || -o login ]] && exec -l "${zsh#-}" || exec "$zsh"
+    fi
+}      
+
+function _xeta::backup {
+    NULL=:
+}
+
+function _xeta::uninstall {
+    function uninstall_xeta() { env XETA="$XETA" sh "${XTOOLS}/uninstall.sh"; }
+    # Implement pin system.
+    io::notify "Hello! Sorry to see you go :(${reset_color}\n"
+    io::yesno "are you sure you want to uninstall Xeta? (y/n)" && {
+        echo "Okay uninstalling now..."
+        uninstall_xeta || io::err "uninstall script faied!"
+    }
 }
 
 function _xeta::changelog {
@@ -258,7 +360,164 @@ EOF
     builtin cd $XETA
     sudo zsh "${XTOOLS}/changelog.sh" "$version" "${2:-}" "$format" "$XLOG"
 
-} 
+}
+
+function _xeta::pr {
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+    Usage: ${(j: :)${(s.::.)0#_}} <command> [options]
+
+    Available commands:
+
+    clean                       Delete all PR branches (xeta/pull-*)
+    test <PR_number_or_URL>     Fetch PR #NUMBER and rebase against main
+
+EOF
+        return 1
+    }
+
+    local command="$1"
+    shift
+
+    $0::$command "$@"
+}
+
+function _xeta::pr::clean {
+    (
+        set -e
+        builtin cd -q "$XETA"
+
+        # Check if there are PR branches
+        local fmt branches
+        fmt="%(color:bold blue)%(align:18,right)%(refname:short)%(end)%(color:reset) %(color:dim bold red)%(objectname:short)%(color:reset) %(color:yellow)%(contents:subject)"
+        branches="$(command git for-each-ref --sort=-committerdate --color --format="$fmt" "refs/heads/xeta/pull-*")"
+
+        # Exit if there are no PR branches
+        if [[ -z "$branches" ]]; then
+            _xeta::log info "there are no Pull Request branches to remove."
+            return
+        fi
+
+        # Print found PR branches
+        echo "$branches\n"
+        # Confirm before removing the branches
+        _xeta::confirm "do you want remove these Pull Request branches? [Y/n] "
+        # Only proceed if the answer is a valid yes option
+        [[ "$REPLY" != [yY$'\n'] ]] && return
+
+            _xeta::log info "removing all Xeta Pull Request branches..."
+            command git branch --list 'xeta/pull-*' | while read branch; do
+                command git branch -D "$branch"
+            done
+    )
+}
+
+function _xeta::pr::test {
+    # Allow $1 to be a URL to the pull request
+    if [[ "$1" = https://* ]]; then
+        1="${1:t}"
+    fi
+
+    # Check the input
+    if ! [[ -n "$1" && "$1" =~ ^[[:digit:]]+$ ]]; then
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <PR_NUMBER_or_URL>"
+        return 1
+    fi
+
+    # Save current git HEAD
+    local branch
+    branch=$(builtin cd -q "$XETA"; git symbolic-ref --short HEAD) || {
+        _xeta::log error "error when getting the current git branch. Aborting..."
+        return 1
+    }
+
+
+    # Fetch PR onto xeta/pull-<PR_NUMBER> branch and rebase against main
+    # If any of these operations fail, undo the changes made
+    (
+        set -e
+        builtin cd -q "$XETA"
+
+        # Get the xeta git remote
+        command git remote -v | while read remote url _; do
+            case "$url" in
+                https://github.com/happycod3r/xeta(|.git)) 
+                    found=1 
+                    break 
+                ;;
+                git@github.com:happycod3r/xeta(|.git)) 
+                    found=1 
+                    break 
+                ;;
+            esac
+        done
+
+        (( $found )) || {
+            _xeta::log error "could not find the xeta git remote. Aborting..."
+            return 1
+        }
+
+        # Fetch pull request head
+        _xeta::log info "fetching PR #$1 to xeta/pull-$1..."
+        command git fetch -f "$remote" refs/pull/$1/head:xeta/pull-$1 || {
+            _xeta::log error "error when trying to fetch PR #$1."
+            return 1
+        }
+
+        # Rebase pull request branch against the current main
+        _xeta::log info "rebasing PR #$1..."
+        local ret gpgsign
+        {
+            # Back up commit.gpgsign setting: use --local to get the current repository
+            # setting, not the global one. If --local is not a known option, it will
+            # exit with a 129 status code.
+            gpgsign=$(command git config --local commit.gpgsign 2>/dev/null) || ret=$?
+            [[ $ret -ne 129 ]] || gpgsign=$(command git config commit.gpgsign 2>/dev/null)
+            command git config commit.gpgsign false
+
+            command git rebase main xeta/pull-$1 || {
+                command git rebase --abort &>/dev/null
+                _xeta::log warn "could not rebase PR #$1 on top of main."
+                _xeta::log warn "you might not see the latest stable changes."
+                _xeta::log info "run \`zsh\` to test the changes."
+                return 1
+            }
+        } always {
+            case "$gpgsign" in
+                "") 
+                    command git config --unset commit.gpgsign 
+                ;;
+                *) 
+                    command git config commit.gpgsign "$gpgsign" 
+                ;;
+            esac
+        }
+
+        _xeta::log info "fetch of PR #${1} successful."
+    )
+
+    # If there was an error, abort running zsh to test the PR
+    [[ $? -eq 0 ]] || return 1
+
+    # Run zsh to test the changes
+    _xeta::log info "running \`zsh\` to test the changes. Run \`exit\` to go back."
+    command zsh -l
+
+    # After testing, go back to the previous HEAD if the user wants
+    _xeta::confirm "do you want to go back to the previous branch? [Y/n] "
+    # Only proceed if the answer is a valid yes option
+    [[ "$REPLY" != [yY$'\n'] ]] && return
+
+    (
+        set -e
+        builtin cd -q "$XETA"
+
+        command git checkout "$branch" -- || {
+            _xeta::log error "could not go back to the previous branch ('$branch')."
+            return 1
+        }
+    )
+}
 
 function _xeta::plugin {
     (( $# > 0 && $+functions[$0::$1] )) || {
@@ -500,7 +759,7 @@ function _xeta::plugin::load {
     fi
 
     local plugin base has_completion=0
-    
+
     for plugin in "$@"; do
         if [[ -d "$XCUSTOM/plugins/$plugin" ]]; then
             base="$XCUSTOM/plugins/$plugin"
@@ -585,171 +844,8 @@ function _xeta::plugin::remove {
     unset $_plugin
 }
 
-function _xeta::pr {
-    (( $# > 0 && $+functions[$0::$1] )) || {
-        cat >&2 <<EOF
-    Usage: ${(j: :)${(s.::.)0#_}} <command> [options]
-
-    Available commands:
-
-    clean                       Delete all PR branches (xeta/pull-*)
-    test <PR_number_or_URL>     Fetch PR #NUMBER and rebase against main
-
-EOF
-        return 1
-    }
-
-    local command="$1"
-    shift
-
-    $0::$command "$@"
-}
-
-function _xeta::pr::clean {
-    (
-        set -e
-        builtin cd -q "$XETA"
-
-        # Check if there are PR branches
-        local fmt branches
-        fmt="%(color:bold blue)%(align:18,right)%(refname:short)%(end)%(color:reset) %(color:dim bold red)%(objectname:short)%(color:reset) %(color:yellow)%(contents:subject)"
-        branches="$(command git for-each-ref --sort=-committerdate --color --format="$fmt" "refs/heads/xeta/pull-*")"
-
-        # Exit if there are no PR branches
-        if [[ -z "$branches" ]]; then
-            _xeta::log info "there are no Pull Request branches to remove."
-            return
-        fi
-
-        # Print found PR branches
-        echo "$branches\n"
-        # Confirm before removing the branches
-        _xeta::confirm "do you want remove these Pull Request branches? [Y/n] "
-        # Only proceed if the answer is a valid yes option
-        [[ "$REPLY" != [yY$'\n'] ]] && return
-
-            _xeta::log info "removing all Xeta Pull Request branches..."
-            command git branch --list 'xeta/pull-*' | while read branch; do
-                command git branch -D "$branch"
-            done
-    )
-}
-
-function _xeta::pr::test {
-    # Allow $1 to be a URL to the pull request
-    if [[ "$1" = https://* ]]; then
-        1="${1:t}"
-    fi
-
-    # Check the input
-    if ! [[ -n "$1" && "$1" =~ ^[[:digit:]]+$ ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <PR_NUMBER_or_URL>"
-        return 1
-    fi
-
-    # Save current git HEAD
-    local branch
-    branch=$(builtin cd -q "$XETA"; git symbolic-ref --short HEAD) || {
-        _xeta::log error "error when getting the current git branch. Aborting..."
-        return 1
-    }
-
-
-    # Fetch PR onto xeta/pull-<PR_NUMBER> branch and rebase against main
-    # If any of these operations fail, undo the changes made
-    (
-        set -e
-        builtin cd -q "$XETA"
-
-        # Get the xeta git remote
-        command git remote -v | while read remote url _; do
-            case "$url" in
-                https://github.com/happycod3r/xeta(|.git)) 
-                    found=1 
-                    break 
-                ;;
-                git@github.com:happycod3r/xeta(|.git)) 
-                    found=1 
-                    break 
-                ;;
-            esac
-        done
-
-        (( $found )) || {
-            _xeta::log error "could not find the xeta git remote. Aborting..."
-            return 1
-        }
-
-        # Fetch pull request head
-        _xeta::log info "fetching PR #$1 to xeta/pull-$1..."
-        command git fetch -f "$remote" refs/pull/$1/head:xeta/pull-$1 || {
-            _xeta::log error "error when trying to fetch PR #$1."
-            return 1
-        }
-
-        # Rebase pull request branch against the current main
-        _xeta::log info "rebasing PR #$1..."
-        local ret gpgsign
-        {
-            # Back up commit.gpgsign setting: use --local to get the current repository
-            # setting, not the global one. If --local is not a known option, it will
-            # exit with a 129 status code.
-            gpgsign=$(command git config --local commit.gpgsign 2>/dev/null) || ret=$?
-            [[ $ret -ne 129 ]] || gpgsign=$(command git config commit.gpgsign 2>/dev/null)
-            command git config commit.gpgsign false
-
-            command git rebase main xeta/pull-$1 || {
-                command git rebase --abort &>/dev/null
-                _xeta::log warn "could not rebase PR #$1 on top of main."
-                _xeta::log warn "you might not see the latest stable changes."
-                _xeta::log info "run \`zsh\` to test the changes."
-                return 1
-            }
-        } always {
-            case "$gpgsign" in
-                "") 
-                    command git config --unset commit.gpgsign 
-                ;;
-                *) 
-                    command git config commit.gpgsign "$gpgsign" 
-                ;;
-            esac
-        }
-
-        _xeta::log info "fetch of PR #${1} successful."
-    )
-
-    # If there was an error, abort running zsh to test the PR
-    [[ $? -eq 0 ]] || return 1
-
-    # Run zsh to test the changes
-    _xeta::log info "running \`zsh\` to test the changes. Run \`exit\` to go back."
-    command zsh -l
-
-    # After testing, go back to the previous HEAD if the user wants
-    _xeta::confirm "do you want to go back to the previous branch? [Y/n] "
-    # Only proceed if the answer is a valid yes option
-    [[ "$REPLY" != [yY$'\n'] ]] && return
-
-    (
-        set -e
-        builtin cd -q "$XETA"
-
-        command git checkout "$branch" -- || {
-            _xeta::log error "could not go back to the previous branch ('$branch')."
-            return 1
-        }
-    )
-}
-
-function _xeta::reload {
-    # Delete current completion cache
-    command rm -f $_comp_dumpfile $ZSH_COMPDUMP
-
-    # Old zsh versions don't have ZSH_ARGZERO
-    local zsh="${ZSH_ARGZERO:-${functrace[-1]%:*}}"
-    # Check whether to run a login shell
-    [[ "$zsh" = -* || -o login ]] && exec -l "${zsh#-}" || exec "$zsh"
+function _xeta::plugin::update {
+    NULL=:
 }
 
 function _xeta::theme {
@@ -978,71 +1074,6 @@ function _xeta::theme::unfav {
         io::yesno "Are you sure you want to remove $THEME from your favorites?" && sed -i "/$THEME/d" "$FAVLIST"
     fi
     echo
-}
-
-function _xeta::update {
-    local last_commit=$(builtin cd -q "$XETA"; git rev-parse HEAD)
-
-    # Run update script
-    zstyle -s ':xeta:update' verbose verbose_mode || verbose_mode=default
-    if [[ "$1" != --unattended ]]; then
-        XETA="$XETA" command zsh -f "$XTOOLS/upgrade.sh" -i -v $verbose_mode || return $?
-    else
-        XETA="$XETA" command zsh -f "$XTOOLS/upgrade.sh" -v $verbose_mode || return $?
-    fi
-
-    # Update last updated file
-    zmodload zsh/datetime
-    echo "LAST_EPOCH=$(( EPOCHSECONDS / 60 / 60 / 24 ))" >! "${XCACHE}/.zsh-update"
-    # Remove update lock if it exists
-    command rm -rf "$XLOG/update.lock"
-
-    # Restart the zsh session if there were changes
-    if [[ "$1" != --unattended && "$(builtin cd -q "$XETA"; git rev-parse HEAD)" != "$last_commit" ]]; then
-        # Old zsh versions don't have ZSH_ARGZERO
-        local zsh="${ZSH_ARGZERO:-${functrace[-1]%:*}}"
-        # Check whether to run a login shell
-        [[ "$zsh" = -* || -o login ]] && exec -l "${zsh#-}" || exec "$zsh"
-    fi
-}
-
-function _xeta::version {
-    (
-        builtin cd -q "$XETA"
-
-        # Get the version name:
-        # 1) try tag-like version
-        # 2) try branch name
-        # 3) try name-rev (tag~<rev> or branch~<rev>)
-        local version version_file
-        version_file="${XCONFIG}/version.conf"
-
-        if [[ -n "$XETA_VERSION" && ! -z "$XETA_VERSION" ]]; then
-            version="$XETA_VERSION"
-            printf "%s\n" "$version"
-            return
-        else
-            version=$(command git describe --tags HEAD 2>/dev/null) \
-            || version=$(command git sy mbolic-ref --quiet --short HEAD 2>/dev/null) \
-            || version=$(command git name-rev --no-undefined --name-only --exclude="remotes/*" HEAD 2>/dev/null) \
-            || version="<detached>"
-
-            # Get short hash for the current HEAD
-            local commit=$(command git rev-parse --short HEAD 2>/dev/null)
-            # Show version and commit hash
-            printf "%s (%s)\n" "$version" "$commit"
-        fi
-    )
-}   
-
-function _xeta::uninstall {
-    function uninstall_xeta() { env XETA="$XETA" sh "${XTOOLS}/uninstall.sh"; }
-    # Implement pin system.
-    io::notify "Hello! Sorry to see you go :(${reset_color}\n"
-    io::yesno "are you sure you want to uninstall Xeta? (y/n)" && {
-        echo "Okay uninstalling now..."
-        uninstall_xeta || io::err "uninstall script faied!"
-    }
 }
 
 function _xeta::aliases {
@@ -1443,27 +1474,6 @@ function _xeta::edit::path {
     nano "${XCONFIG}/path.conf"
 }
 
-function _xeta::credits {
-    echo -e "
-    [0;1;35;95mOh-My-Zsh v5.0.8${reset_color}
-        https://github.com/ohmyzsh 
-    [0;1;31;91mZsh-Syntax Highlighting v0.8.0${reset_color}
-        https://github.com/zsh-users/zsh-syntax-highlighting
-    [0;1;33;93mZsh-Auto-Suggestions v0.7.0${reset_color}
-        https://github.com/zsh-users/zsh-autosuggestions 
-    [0;1;32;92mZsh-Navigation-Tools v5.0.0${reset_color}
-        https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/zsh-navigation-tools
-    [0;1;36;96mfzf (Fuzzy Finder) v0.42.0${reset_color}
-        https://github.com/junegunn/fzf
-    [0;1;35;95mAutoenv/Direnv v0.3.0${reset_color}
-        https://github.com/hyperupcall/autoenv 
-    [0;1;31;91mPowerlevel10K v1.19.0${reset_color}
-        https://github.com/romkatv/powerlevel10k
-    [0;1;33;93mSpaceship Prompt v4.14.0${reset_color}
-        https://spaceship-prompt.sh/
-        "
-}
-
 function _xeta::stats {
     if [[ -z "$1" ]]; then
         echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
@@ -1554,4 +1564,26 @@ function _xeta::git::commit::specific {
     io::notify "Commit was successful!"
 }
 
+function xeta::sudo {
+    NULL=:
+}
 
+function xeta::user {
+    NULL=:
+}
+
+function xeta::user::username {
+    NULL=:
+}
+
+function xeta::user::password {
+    NULL=:
+}
+
+function xeta::user::pin {
+    NULL=:
+}
+
+function xeta::user::email {
+    NULL=:
+}
