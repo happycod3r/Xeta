@@ -12,7 +12,7 @@ function _init() {
     
     function _init::validate_configs() {
         # Checks validity of the config files
-        config_path="$HOME/.xeta/xenv/config"
+        config_path="$HOME/.xeta/xenv/.config"
         configs=(xeta aliases globals jump-points key-binds path theme-favlist)
         function is_config_file() {
             local base_dir=$1
@@ -32,7 +32,7 @@ function _init() {
     }
 
     function _init::load_xeta_config() {
-        [[ -f "${XETA}/xenv/config/xeta.conf" ]] && builtin source "${XETA}/xenv/config/xeta.conf"
+        [[ -f "${XETA}/xenv/.config/xeta.conf" ]] && builtin source "${XETA}/xenv/.config/xeta.conf"
     }
 
     function _init::shield_from_non_zsh_exec() {
