@@ -1,5 +1,7 @@
 
 .private-key
+.gt
+xenv/.config/git-credentials.conf
 
 *.tmp
 *.temp
