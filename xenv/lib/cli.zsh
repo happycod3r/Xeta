@@ -22,21 +22,24 @@ function xeta {
 function _xeta {
     local -a cmds subcmds
     cmds=(
-        'changelog:Print the changelog'
         'help:Usage information'
-        'plugin:Manage plugins'
-        'pr:Manage Xeta Pull Requests'
-        'reload:Reload the current zsh session'
-        'theme:Manage themes'
-        'update:Update Xeta'
+        'credits:View credits and thanks'
         'version:Show the version'
-        'aliases:Manage aliases'
-        'edit:View and Edit config files'
-        'git:Manage a repository'
-        'extract:Extract archived files'
+        'reload:Reload the current zsh session'
+        'update:Update Xeta'
+        'backup:Make a backup of Xeta'
         'uninstall:Uninstall Xeta'
+        'changelog:Print the changelog'
+        'pr:Manage Xeta Pull Requests'
+        'plugin:Manage plugins'
+        'theme:Manage themes'
+        'aliases:Manage aliases'
+        'util:Access utilities'
+        'edit:View and Edit config files'
         'stats:Show various stats'
-        'credits:View credits to all the things that went into xeta.'
+        'git:Manage a repository'
+        'user:Manage user settigs'
+        'toggle:Enable/disable settings'
     )
  
     if (( CURRENT == 2 )); then
@@ -48,55 +51,111 @@ function _xeta {
                 refs=("${(@f)$(builtin cd -q "$XETA"; command git for-each-ref --format="%(refname:short):%(subject)" refs/heads refs/tags)}")
                 _describe 'command' refs 
             ;;
+            pr) 
+                subcmds=(
+                    'clean:Delete all pull request branches' 
+                    'test:Test a pull request'
+                )
+                _describe 'command' subcmds 
+            ;;
             plugin) 
                 subcmds=(
                     'disable:Disable plugin(s)'
                     'enable:Enable plugin(s)'
                     'info:Get plugin information'
-                    'list:List plugins'
+                    'list:List all plugins'
                     'load:Load plugin(s)'
-                    'path:Absolute path to plugin(s)'
+                    'path:Get the path to plugin(s)'
                     'remove:Delete plugin(s)'
+                    'update:Update plugin(s)'
                 )
-                _describe 'command' subcmds ;;
-            pr) 
-                subcmds=('clean:Delete all Pull Request branches' 'test:Test a Pull Request')
                 _describe 'command' subcmds 
             ;;
             theme) 
-                subcmds=('list:List themes' 'set:Set a theme in your .zshrc file' 'use:Load a theme' 'previews:Show previews of all available themes' 'preview:Preview a theme' 'fav:Add a theme to your favorites' 'unfav:Remove a theme from your favorites' 'lsfav:List the themes in your favorites list')
+                subcmds=(
+                    'list:List all themes'
+                    'preview:Preview a theme'
+                    'previews:Show previews of all themes'
+                    'set:Set a theme in your .zshrc file' 
+                    'use:Load a theme for this session'  
+                    'fav:Add a theme to your favorites' 
+                    'unfav:Remove a theme from your favorites' 
+                    'lsfav:List the themes in your favorites list'
+                )
                 _describe 'command' subcmds  
             ;;
             aliases)
-                subcmds=('list:List aliases' 'add:Define a new alias' 'remove:Remove a defined alias' 'cmd_for:Get the command for an alias name' 'name_for:Get the alias name for a command' 'containing:Get aliases containing the specified command')
+                subcmds=(
+                    'list:List aliases' 
+                    'add:Define a new alias' 
+                    'remove:Remove a defined alias' 
+                    'cmd_for:Get the command for an alias name' 
+                    'name_for:Get the alias name for a command' 
+                    'containing:Get aliases containing the specified command'
+                )
+                _describe 'command' subcmds
+            ;;
+            util)
+                subcmds=(
+                    'extract:Extract an archive file'
+                )
                 _describe 'command' subcmds
             ;;
             edit)
-                subcmds=('zshrc:Edit your .zshrc' 'bashrc:Edit your .bashrc' 'config:Edit your xeta.conf' 'aliases:Edit your aliases.conf' 'globals:Edit your globals.conf' 'keybinds:Edit your key-binds.conf' 'path:Edit your path.conf' 'jumppoints:Edit your jump-points.conf' 'favs:Edit theme-favlist.conf')
-                _describe 'command' subcmds
-            ;;
-            git)
-                subcmds=('commit:Create a new commit' 'status:Print repository status')
+                subcmds=(
+                    'zshrc:Edit your .zshrc'
+                    'bashrc:Edit your .bashrc'
+                    'config:Edit your xeta.conf'
+                    'favs:Edit theme-favlist.conf'
+                    'aliases:Edit your aliases.conf'
+                    'globals:Edit your globals.conf'
+                    'keybinds:Edit your key-binds.conf'
+                    'path:Edit your path.conf'
+                    'jumppoints:Edit your jump-points.conf'
+                )
                 _describe 'command' subcmds
             ;;
             stats)
-                subcmds=('cmds:View stats on the top 20 most used commands')
+                subcmds=(
+                    'cmds:View stats on the top 20 most used commands'
+                )
+                _describe 'command' subcmds
+            ;;
+            git)
+                subcmds=(
+                    'status:Print repository status'
+                    'commit:Create a new commit'
+                )
+                _describe 'command' subcmds
+            ;;
+            user)
+                subcmds=(
+                    'username:Manage your username'
+                    'password:Manage your password'
+                    'pin:Manage your pin'
+                    'email:Manage your email'
+                )
+                _describe 'command' subcmds
+            ;;
+            toggle)
+                subcmds=(
+                    'sudo:Toggle default to sudo commands'
+                )
                 _describe 'command' subcmds
             ;;
         esac
     elif (( CURRENT == 4 )); then
         case "${words[2]}::${words[3]}" in
-            git::(commit))
-                subcmds=('all:Commit all changes' 'specific:Commit specific changes')
-                _describe 'command' subcmds
-            ;;
             plugin::(disable|enable|load))
                 local -aU valid_plugins
                 if [[ "${words[3]}" = disable ]]; then
                     # if command is "disable", only offer already enabled plugins
                     valid_plugins=($plugins)
                 else
-                    valid_plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
+                    valid_plugins=(
+                        "$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) 
+                        "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t)
+                    )
                     # if command is "enable", remove already enabled plugins
                     [[ "${words[3]}" = enable ]] && valid_plugins=(${valid_plugins:|plugins})
                 fi
@@ -105,23 +164,74 @@ function _xeta {
             ;;
             plugin::info)
                 local -aU plugins
-                plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
+                plugins=(
+                    "$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) 
+                    "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t)
+                )
                 _describe 'plugin' plugins 
             ;;
             plugin::path)
                 local -aU plugins
-                plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
+                plugins=(
+                    "$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) 
+                    "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t)
+                )
                 _describe 'plugin' plugins
             ;;
             plugin::remove)
                 local -aU plugins
-                plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
+                plugins=(
+                    "$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) 
+                    "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t)
+                )
                 _describe 'plugin' plugins     
             ;;
             theme::(set|use|preview|fav|unfav))
                 local -aU themes
-                themes=("$XTHEMES"/*.zsh-theme(-.N:t:r) "$XCUSTOM"/**/*.zsh-theme(-.N:r:gs:"$XCUSTOM"/themes/:::gs:"$XCUSTOM"/:::))
+                themes=(
+                    "$XTHEMES"/*.zsh-theme(-.N:t:r) 
+                    "$XCUSTOM"/**/*.zsh-theme(-.N:r:gs:"$XCUSTOM"/themes/:::gs:"$XCUSTOM"/:::)
+                )
                 _describe 'theme' themes 
+            ;;
+            git::(commit))
+                subcmds=(
+                    'all:Commit all changes' 
+                    'specific:Commit specific changes'
+                )
+                _describe 'command' subcmds
+            ;;
+            user::(username))
+                subcmds=(
+                    'set:Set your username'
+                    'unset:Unset your username'
+                    'reset:Reset your username'
+                )
+                _describe 'command' subcmds
+            ;;
+            user::(password))
+                subcmds=(
+                    'set:Set your password'
+                    'unset:Unset your password'
+                    'reset:Reset your password'
+                )
+                _describe 'command' subcmds
+            ;;
+            user::(pin))
+                subcmds=(
+                    'set:Set your pin'
+                    'unset:Unset your pin'
+                    'reset:Reset your pin'
+                )
+                _describe 'command' subcmds
+            ;;
+            user::(email))
+                subcmds=(
+                    'set:Set your email'
+                    'unset:Unset your email'
+                    'reset:Reset your email'
+                )
+                _describe 'command' subcmds
             ;;
         esac
     elif (( CURRENT > 4 )); then
@@ -133,7 +243,10 @@ function _xeta {
                     # if command is "disable", only offer already enabled plugins
                     valid_plugins=($plugins)
                 else
-                    valid_plugins=("$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t))
+                    valid_plugins=(
+                        "$XPLUGS"/*/{_*,*.plugin.zsh}(-.N:h:t) 
+                        "$XCUSTOM"/plugins/*/{_*,*.plugin.zsh}(-.N:h:t)
+                    )
                     # if command is "enable", remove already enabled plugins
                     [[ "${words[3]}" = enable ]] && valid_plugins=(${valid_plugins:|plugins})
                 fi
@@ -145,7 +258,7 @@ function _xeta {
                 local -a args
                 args=(${words[4,$(( CURRENT - 1))]})
                 valid_plugins=(${valid_plugins:|args})
-
+ 
                 _describe 'plugin' valid_plugins 
             ;;
         esac
@@ -159,7 +272,7 @@ if (( ${+functions[compdef]} )); then
     compdef _xeta xeta
 fi
 
-## Utility functions
+#//////////// * Utility functions * //////
 
 function _xeta::confirm {
     # If question supplied, ask it before reading the answer
@@ -214,35 +327,37 @@ function _xeta::log {
     esac >&2
 }
 
-## User-facing commands
+#//////////// * User commands * //////
 
 function _xeta::help {
     cat >&2 <<EOF
         Usage: xeta <command> [options]
 
         Available commands:
-
-        help                            Print this help message
-        credits                         Displays credits and thanks
-        version                         Show the version
-        reload                          Reload the current zsh session
-        update                          Update Xeta
-        backup                          Backup xeta and your cnfig files
-        uninstall                       Uninstall Xeta
-        changelog                       Print the changelog
-        pr <command>                    Manage Xeta Pull Requests
-        plugin <command>                Manage plugins
-        theme <command>                 Manage themes 
-        aliases <command>               Manage aliases
-        extract <-option> <file_name>   Extract archived files
-        edit <file_name>                View and edit config files
-        stats <command>                 View various statistics
-        git <command>                   Manage a git repository   
+        help                       Print this help message
+        credits                    View credits and thanks
+        version                    Show the version
+        reload                     Reload the current zsh session
+        update                     Update Xeta
+        backup                     Make a backup of Xeta
+        uninstall                  Uninstall Xeta
+        changelog                  Print the changelog
+        pr                         Manage Xeta Pull Requests
+        plugin                     Manage plugins
+        theme                      Manage themes
+        aliases                    Manage aliases
+        util                       Access utilities
+        edit                       View and Edit config files
+        stats                      Show various stats
+        git                        Manage a repository
+        user                       Manage user settigs 
+        toggle                     Enable/disable settings
 EOF
 }
 
 function _xeta::credits {
     echo -e "
+    ////////////////////////////////////////////////////
     [0;1;35;95mOh-My-Zsh v5.0.8${reset_color}
         https://github.com/ohmyzsh 
     [0;1;31;91mZsh-Syntax Highlighting v0.8.0${reset_color}
@@ -259,7 +374,8 @@ function _xeta::credits {
         https://github.com/romkatv/powerlevel10k
     [0;1;33;93mSpaceship Prompt v4.14.0${reset_color}
         https://spaceship-prompt.sh/
-        "
+    ////////////////////////////////////////////////////
+"
 }
 
 function _xeta::version {
@@ -328,7 +444,14 @@ function _xeta::update {
 }      
 
 function _xeta::backup {
-    NULL=:
+    XETA="${XETA:-~/.xeta}"
+    BACKUP_DIR="${HOME}/xeta-backups"
+    BACKUP_NAME="xeta.backup-$(date).zip"
+    sudo mkdir "$BACKUP_DIR"
+    sudo zip -r "${$BACKUP_DIR}/${BACKUP_NAME}" "$XETA" || {
+        io::notify "Failed to create backup is zip installed?"
+        return 1
+    }
 }
 
 function _xeta::uninstall {
@@ -944,7 +1067,6 @@ function _xeta::theme::previews {
     cols=$(tput cols)
 }
 
-# Writes the theme to the xeta.conf file for persistence
 function _xeta::theme::set {
     if [[ -z "$1" ]]; then
         echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <theme>"
@@ -1011,7 +1133,6 @@ EOF
     [[ ! -o interactive ]] || _xeta::reload
 }
 
-# Changes the theme only for the current session
 function _xeta::theme::use {
     if [[ -z "$1" ]]; then
         echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <theme>"
@@ -1230,7 +1351,18 @@ function _xeta::aliases::containing {
     acs "$1"
 }
 
-function _xeta::extract {
+function _xeta::util {
+    if [[ -z "$1" ]]; then
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <cmmand>"
+        return 1
+    fi
+    local command="$1"
+    shift
+
+    $0::$command "$@"
+}
+
+function _xeta::util::extract {
     setopt localoptions noautopushd
 
     if [[ $# -eq 0 ]]; then
@@ -1564,26 +1696,39 @@ function _xeta::git::commit::specific {
     io::notify "Commit was successful!"
 }
 
-function xeta::sudo {
+function _xeta::user {
     NULL=:
 }
 
-function xeta::user {
+function _xeta::user::username {
     NULL=:
 }
 
-function xeta::user::username {
+function _xeta::user::password {
     NULL=:
 }
 
-function xeta::user::password {
+function _xeta::user::pin {
     NULL=:
 }
 
-function xeta::user::pin {
+function _xeta::user::email {
     NULL=:
 }
 
-function xeta::user::email {
+function _xeta::toggle {
     NULL=:
 }
+
+function _xeta::toggle::sudo {
+    echo "hello sudo"
+    _toggle_sudo_variable
+    toggle_use_zsh_hooks_variable
+    # if [[ $SUDO == 'true' ]]; then 
+    #     io::notify "Automatic sudo commands are off"; 
+    #     return 0;
+    # elif [[ $SUDO == 'false' ]]; then 
+    #     io::notify "Automatic sudo commands are on"; 
+    #     return 0;
+    # fi
+}   
