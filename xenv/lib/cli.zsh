@@ -500,7 +500,36 @@ function _xeta::plugin::load {
     fi
 
     local plugin base has_completion=0
- 
+    
+    for plugin in "$@"; do
+        if [[ -d "$XCUSTOM/plugins/$plugin" ]]; then
+            base="$XCUSTOM/plugins/$plugin"
+        elif [[ -d "$XPLUGS/$plugin" ]]; then
+            base="$XPLUGS/$plugin"
+        else
+            _xeta::log warn "plugin '$plugin' not found"
+            continue
+        fi
+
+        # Check if its a valid plugin
+        if [[ ! -f "$base/_$plugin" && ! -f "$base/$plugin.plugin.zsh" ]]; then
+            _xeta::log warn "'$plugin' is not a valid plugin"
+            continue
+            # It it is a valid plugin, add its directory to $fpath unless it is already there
+        elif (( ! ${fpath[(Ie)$base]} )); then
+            fpath=("$base" $fpath)
+        fi
+
+        # Check if it has completion to reload compinit
+        local -a comp_files
+        comp_files=($base/_*(N))
+        has_completion=$(( $#comp_files > 0 ))
+
+        # Load the plugin
+        if [[ -f "$base/$plugin.plugin.zsh" ]]; then
+            builtin source "$base/$plugin.plugin.zsh"
+        fi
+    done
 
     # If we have completion, we need to reload the completion
     # We pass -D to avoid generating a new dump file, which would overwrite our
@@ -1524,4 +1553,5 @@ function _xeta::git::commit::specific {
     git commit -m "[${_type}] $_msg" || {io::err "Commit was unsuccessfull!"; return 1;}
     io::notify "Commit was successful!"
 }
+
 

@@ -2,6 +2,7 @@
 .private-key
 .gt
 xenv/.config/git-credentials.conf
+README_DEV.md
 
 *.tmp
 *.temp

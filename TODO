@@ -1,3 +1,5 @@
+☐ Create git credential helper system. @created(23-06-27 21:53)
+
 ☐ @critical  Clean up cli.
     - Make everything uniform
     - add error/argument checks to all functions 
