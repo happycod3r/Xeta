@@ -1847,7 +1847,25 @@ function _xeta::git::commit::all {
     _type="$1"
     _msg="$2"
     if [[ -z "$_msg" || -z "$_type" ]]; then 
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
+        cat >&2 <<EOF
+
+    [04m"Usage[24m: ${(j: :)${(s.::.)0#_}} [03m[commit_type][23m [03m[commit_message][23m"   
+
+    [04mValid commit types[24m:
+
+        [04mbuild[24m     [03m"Build system"[23m
+        [04mchore[24m     [03m"Chore"[23m
+        [04mci[24m        [03m"CI"[23m
+        [04mdocs[24m      [03m"Documentation"[23m
+        [04mfeat[24m      [03m"Features"[23m
+        [04mfix[24m       [03m"Bug fixes"[23m
+        [04mperf[24m      [03m"Performance"[23m
+        [04mrefactor[24m  [03m"Refactor"[23m
+        [04mstyle[24m     [03m"Style"[23m
+        [04mtest[24m      [03m"Testing"[23m
+
+
+EOF
         return 1 
     fi
     
@@ -1859,12 +1877,30 @@ function _xeta::git::commit::all {
 }
 
 function _xeta::git::commit::specific {
-    if [[ -z "$_msg" || -z "$_type" ]]; then 
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m [03m[file1 ...][23m"   
-        return 1 
-    fi
     _type="$1"
     _msg="$2" 
+    if [[ -z "$_msg" || -z "$_type" ]]; then 
+        cat >&2 <<EOF
+
+    [04m"Usage[24m: ${(j: :)${(s.::.)0#_}} [03m[commit_type][23m [03m[commit_message][23m [03m[file1 ...][23m"   
+
+    [04mValid commit types[24m:
+
+        [04mbuild[24m     [03m"Build system"[23m
+        [04mchore[24m     [03m"Chore"[23m
+        [04mci[24m        [03m"CI"[23m
+        [04mdocs[24m      [03m"Documentation"[23m
+        [04mfeat[24m      [03m"Features"[23m
+        [04mfix[24m       [03m"Bug fixes"[23m
+        [04mperf[24m      [03m"Performance"[23m
+        [04mrefactor[24m  [03m"Refactor"[23m
+        [04mstyle[24m     [03m"Style"[23m
+        [04mtest[24m      [03m"Testing"[23m
+
+
+EOF
+        return 1 
+    fi
     shift 2
     files=(${@})
     if [[ -n "$files" || -z "$files" ]]; then 
