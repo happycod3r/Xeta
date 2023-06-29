@@ -248,7 +248,7 @@ EOF
                 CYAN='\033[0;36m'
                 PURPLE='\033[0;35m'
                 NC='\033[0m'
-                echo -e "${CYAN}[parcel] ${PURPLE}$*${NC}"
+                echo -e "${CYAN}[XETA] ${PURPLE}$*${NC}"
             }
 
             encode() {
@@ -291,17 +291,17 @@ EOF
 
                     while [[ "$good_pin" == "false" ]]; do
                         clear
-                        read "pin?Enter your pin to continue.
-pin: "
+                        io::notify "Enter your pin to continue.${reset_color}" 
+                        read "pin?pin: ${reset_color}"
 
                         if [[ -z "$pin" ]]; then
-                            out "Pin is empty. Enter a valid pin to continue."
+                            io::notify "Pin is empty. Enter a valid pin to continue.${reset_color}"
                             clear
                             continue
                         fi
 
                         if [[ "$pin" == "$exit_char" ]]; then
-                            out "Press enter to exit..."
+                            io::notify "Press enter to exit...${reset_color}"
                             read "a?"
                             clear
                             exit 0
@@ -320,7 +320,7 @@ pin: "
 
                         else
                             clear
-                            out "Invalid pin. Must be no less than 4 digits and no letter or characters."
+                            io::notify "Invalid pin. Must be no less than 4 digits and no letter or characters.${reset_color}"
                         fi
 
                     done
@@ -329,19 +329,20 @@ pin: "
                 # --------------- NEW USERS ------------------
 
                 while [[ "$good_pin" == "false" ]]; do
-                    read "pin?Set a pin for future use
-Pin or (q) to quit: "
+                    io::notify "Set a pin for future use
+Pin or (q) to quit${reset_color}" 
+                    read "pin?: "
 
                     if [[ -z "$pin" ]]; then
                         clear
-                        out "Pin is empty. Enter a valid pin to continue."
+                        io::notify "Pin is empty. Enter a valid pin to continue.${reset_color}"
                         read "a?Press enter to continue..."
                         clear
                         continue
                     fi
 
                     if [[ "$pin" == "$exit_char" ]]; then
-                        out "Press enter to exit..."     
+                        io::notify "Press enter to exit...${reset_color}"     
                         read "a?"
                         clear
                         exit 0
@@ -356,7 +357,7 @@ Pin or (q) to quit: "
                         clear
                     else
                         clear
-                        out "Invalid pin. Must be no less than 4 digits and no letter or characters."
+                        io::notify "Invalid pin. Must be no less than 4 digits and no letter or characters.${reset_color}"
                         read "a?Press enter to continue..."
                         clear
                     fi
@@ -367,7 +368,7 @@ Pin or (q) to quit: "
 
             done
         elif [[ -n $USE_PIN && "$USE_PIN" == "false" ]]; then
-            io::notify "Pin system will be disabled."
+            io::notify "Pin system will be disabled.${reset_color}"
         fi    
 
     }

@@ -1844,12 +1844,13 @@ EOF
 }
 
 function _xeta::git::commit::all {
-    # if [[ -z "$_msg" || -z "$_type" ]]; then 
-    #     echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
-    #     return 1 
-    # fi
     _type="$1"
     _msg="$2"
+    if [[ -z "$_msg" || -z "$_type" ]]; then 
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
+        return 1 
+    fi
+    
     echo "type: $_type"
     echo "msg: $_msg"
     git add . || {io::err "Error adding files!"; return 1;}
