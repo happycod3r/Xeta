@@ -1844,12 +1844,14 @@ EOF
 }
 
 function _xeta::git::commit::all {
-    if [[ -z "$_msg" || -z "$_type" ]]; then 
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
-        return 1 
-    fi
+    # if [[ -z "$_msg" || -z "$_type" ]]; then 
+    #     echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
+    #     return 1 
+    # fi
     _type="$1"
     _msg="$2"
+    echo "type: $_type"
+    echo "msg: $_msg"
     git add . || {io::err "Error adding files!"; return 1;}
     git commit -m "[${_type}] $_msg" || {io::err "Commit was unsuccessfull!"; return 1;}
     io::notify "Commit was successful!"    
@@ -1911,11 +1913,12 @@ EOF
 }
 
 function _xeta::user::username::set {
-    
+    cf="$XCONFIG/credentials.conf"
+
 }
 
 function _xeta::user::username::unset {
-    
+    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::user::password {
@@ -1936,11 +1939,11 @@ EOF
 }
 
 function _xeta::user::password::set {
-    
+    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::user::password::unset {
-    
+    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::user::pin {
@@ -1961,11 +1964,14 @@ EOF
 }
 
 function _xeta::user::pin::set {
+    cf="$XCONFIG/credentials.conf"
+    current_pin="$_PIN"
+    good_pin="false"
     
 }
 
 function _xeta::user::pin::unset {
-    
+    cf="$XCONFIG/credentials.conf"   
 }
 
 function _xeta::user::email { 
@@ -1986,11 +1992,11 @@ EOF
 }
 
 function _xeta::user::email::set {
-    
+    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::user::email::unset {
-    
+    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::toggle {    

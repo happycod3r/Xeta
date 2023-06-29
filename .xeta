@@ -10,31 +10,6 @@
 
 function _init() {
     
-    function _init::validate_configs() {
-        # Checks validity of the config files
-        config_path="$HOME/.xeta/xenv/.config"
-        configs=(xeta aliases globals jump-points key-binds path theme-favlist)
-        function is_config_file() {
-            local base_dir=$1
-            local name=$2
-            builtin test -f "$base_dir/$name.conf"
-        }
-
-        # Make sure we only load .x files and from the correct path.
-        for config_file in ${configs[@]}; do
-            if is_config_file "$config_path" "$config_file"; then
-                fpath=("$config_path/$config_file.conf" $fpath)
-            else    
-                io::notify "config file \"%s\" not found" "$config_file"
-            fi
-        done
-        unset config_file
-    }
-
-    function _init::load_xeta_config() {
-        [[ -f "${XETA}/xenv/.config/xeta.conf" ]] && builtin source "${XETA}/xenv/.config/xeta.conf"
-    }
-
     function _init::shield_from_non_zsh_exec() {
         # Protect against non-zsh execution of XETA (use POSIX syntax here)
         [[ -n "$ZSH_VERSION" ]] || {
@@ -81,6 +56,31 @@ function _init() {
 
             return 1
         }
+    }
+
+    function _init::validate_configs() {
+        # Checks validity of the config files
+        config_path="$HOME/.xeta/xenv/.config"
+        configs=(xeta aliases globals jump-points key-binds path theme-favlist)
+        function is_config_file() {
+            local base_dir=$1
+            local name=$2
+            builtin test -f "$base_dir/$name.conf"
+        }
+
+        # Make sure we only load .x files and from the correct path.
+        for config_file in ${configs[@]}; do
+            if is_config_file "$config_path" "$config_file"; then
+                fpath=("$config_path/$config_file.conf" $fpath)
+            else    
+                io::notify "config file \"%s\" not found" "$config_file"
+            fi
+        done
+        unset config_file
+    }
+
+    function _init::load_xeta_config() {
+        [[ -f "${XETA}/xenv/.config/xeta.conf" ]] && builtin source "${XETA}/xenv/.config/xeta.conf"
     }
 
     function _init::create_cache_dirs() {
@@ -231,6 +231,147 @@ EOF
         unset xtx_file
     }
 
+    #///////////////// CLI AVAILABLE BEYOND THIS POINT //////////////////
+
+    function _init::sec_gate() {
+    
+        if [[ -n $USE_PIN && "$USE_PIN" == "true" ]]; then
+            function fatal() {
+                CYAN='\033[0;36m'
+                RED='\033[0;31m'
+                NC='\033[0m'
+                echo -e "$0: ${RED}Error:${CYAN} $*" >&2
+                exit 0
+            }
+
+            function out() {
+                CYAN='\033[0;36m'
+                PURPLE='\033[0;35m'
+                NC='\033[0m'
+                echo -e "${CYAN}[parcel] ${PURPLE}$*${NC}"
+            }
+
+            encode() {
+                if [[ $# -eq 0 ]]; then
+                    cat | base64
+                else
+                    printf '%s' "$1" | base64
+                fi
+            }
+
+            decode() {
+                if [[ $# -eq 0 ]]; then
+                    cat | base64 --decode
+                else
+                    printf '%s' "$1" | base64 --decode
+                fi
+            }
+
+            DONE="false"
+            CONFIG_DIRECTORY="${XCONFIG}"
+            PIN_FILE="${CONFIG_DIRECTORY}/.pin.conf"
+            new_user="true"
+
+            if [[ ! -d "$CONFIG_DIRECTORY" ]]; then
+                mkdir -p "$CONFIG_DIRECTORY"
+            fi
+
+            while [[ "$DONE" == "false" ]]; do
+                good_pin="false"
+                pin_pattern='^[0-9]{4}$' # 4 digits.
+                exit_char="q"
+
+            # ------------------- CURRENT USERS ------------------
+
+                if [[ -f "$PIN_FILE" ]]; then
+
+                    new_user="false"
+                    correct_pin="$(sed "1q;d" $XCONFIG/.pin.conf | cut -d':' -f2)"
+                    decoded_pin="$(decode $correct_pin)"
+
+                    while [[ "$good_pin" == "false" ]]; do
+                        clear
+                        read "pin?Enter your pin to continue.
+pin: "
+
+                        if [[ -z "$pin" ]]; then
+                            out "Pin is empty. Enter a valid pin to continue."
+                            clear
+                            continue
+                        fi
+
+                        if [[ "$pin" == "$exit_char" ]]; then
+                            out "Press enter to exit..."
+                            read "a?"
+                            clear
+                            exit 0
+                        fi
+
+                        if [[ $pin =~ $pin_pattern ]]; then
+                        
+                            if [[ "$pin" == "$decoded_pin" ]]; then
+                                good_pin="true"
+                                DONE="true"
+                                clear
+                                break
+                            else
+                                continue
+                            fi
+
+                        else
+                            clear
+                            out "Invalid pin. Must be no less than 4 digits and no letter or characters."
+                        fi
+
+                    done
+                fi
+
+                # --------------- NEW USERS ------------------
+
+                while [[ "$good_pin" == "false" ]]; do
+                    read "pin?Set a pin for future use
+Pin or (q) to quit: "
+
+                    if [[ -z "$pin" ]]; then
+                        clear
+                        out "Pin is empty. Enter a valid pin to continue."
+                        read "a?Press enter to continue..."
+                        clear
+                        continue
+                    fi
+
+                    if [[ "$pin" == "$exit_char" ]]; then
+                        out "Press enter to exit..."     
+                        read "a?"
+                        clear
+                        exit 0
+                    fi
+
+                    if [[ $pin =~ $pin_pattern ]]; then
+                        local encode_pin
+                        encoded_pin="$(encode $pin)"
+                        echo "pin:$encoded_pin" > "$PIN_FILE"
+                        good_pin="true"
+                        DONE="true"
+                        clear
+                    else
+                        clear
+                        out "Invalid pin. Must be no less than 4 digits and no letter or characters."
+                        read "a?Press enter to continue..."
+                        clear
+                    fi
+                done
+                if [[ $DONE == "true" ]]; then
+                    break
+                fi
+
+            done
+        elif [[ -n $USE_PIN && "$USE_PIN" == "false" ]]; then
+            io::notify "Pin system will be disabled."
+        fi    
+
+    }
+
     function _init::load_plugins() {
         # Load all of the plugins that are defined
         for plugin in ${plugins[@]}; do
@@ -296,7 +437,7 @@ EOF
 
     function _init::check_sudo() {
         if [[ $SUDO == "true" ]]; then
-            command -v "sudo" >/dev/null 2>&1 || return 1
+            command -v "sudo" >/dev/null 2>&1 || return 1;
             alias mv='sudo mv'
             alias cp='sudo cp'
             alias rm='sudo rm'
@@ -338,6 +479,9 @@ EOF
     
     _init::load_library_files
     _init::load_xtx_files
+    #////////////////////////////
+    _init::sec_gate
+    #////////////////////////////
     _init::load_plugins
     _init::load_themes
     _init::load_hooks

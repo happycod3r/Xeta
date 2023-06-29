@@ -13,7 +13,7 @@ README_DEV.md
 *.zwc.old
 *.zip
 *.tar.gz
-*.deb
+*.debgi
 
 NOTES.md
 .DS_Store

@@ -1,7 +1,3 @@
 
-local DEV_TOKEN="Z2hwXzduM3M3ck54ZVViMFF0bm1BZkllUHZaODdldEJ2WjJhOXFlQg=="
-
-function get-token() {
-    echo "$DEV_TOKEN"
-}
-
+local 1="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"
+local 2="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"
