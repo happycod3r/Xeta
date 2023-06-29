@@ -24,7 +24,7 @@ function _xeta {
     cmds=(
         'help:Usage information'
         'credits:View credits and thanks'
-        'version:Show the version'
+        'version:Show the current version'
         'reload:Reload the current zsh session'
         'update:Update Xeta'
         'backup:Make a backup of Xeta'
@@ -331,27 +331,31 @@ function _xeta::log {
 
 function _xeta::help {
     cat >&2 <<EOF
-        Usage: xeta <command> [options]
 
-        Available commands:
-        help                       Print this help message
-        credits                    View credits and thanks
-        version                    Show the version
-        reload                     Reload the current zsh session
-        update                     Update Xeta
-        backup                     Make a backup of Xeta
-        uninstall                  Uninstall Xeta
-        changelog                  Print the changelog
-        pr                         Manage Xeta Pull Requests
-        plugin                     Manage plugins
-        theme                      Manage themes
-        aliases                    Manage aliases
-        util                       Access utilities
-        edit                       View and Edit config files
-        stats                      Show various stats
-        git                        Manage a repository
-        user                       Manage user settigs 
-        toggle                     Enable/disable settings
+        [04mUsage[24m: xeta [03m[command][23m
+
+        [04mAvailable commands[24m:
+
+        [04mhelp[24m                       Print this help message
+        [04mcredits[24m                    View credits and thanks
+        [04mversion[24m                    Show the version
+        [04mreload[24m                     Reload the current zsh session
+        [04mupdate[24m                     Update Xeta
+        [04mbackup[24m                     Make a backup of Xeta
+        [04muninstall[24m                  Uninstall Xeta
+        [04mchangelog[24m                  Print the changelog
+        [04mpr[24m           [03m[command][23m     Manage Xeta pull requests
+        [04mplugin[24m       [03m[cmd1 ...][23m    Manage plugins
+        [04mtheme[24m        [03m[cmd1 ...][23m    Manage themes
+        [04maliases[24m      [03m[cmd1 ...][23m    Manage aliases
+        [04mutil[24m         [03m[command][23m     Access utilities
+        [04medit[24m         [03m[command][23m     View and edit config files
+        [04mstats[24m        [03m[command][23m     Show various stats
+        [04mgit[24m          [03m[cmd1 ...][23m    Manage a repository
+        [04muser[24m         [03m[cmd1 ...][23m    Manage user settigs 
+        [04mtoggle[24m       [03m[command][23m     Enable/disable settings
+
+
 EOF
 }
 
@@ -488,12 +492,14 @@ EOF
 function _xeta::pr {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
-    Usage: ${(j: :)${(s.::.)0#_}} <command> [options]
 
-    Available commands:
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    clean                       Delete all PR branches (xeta/pull-*)
-    test <PR_number_or_URL>     Fetch PR #NUMBER and rebase against main
+    [04mAvailable commands[24m:
+
+    [04mclean[24m                      Delete all PR branches (xeta/pull-*)
+    [04mtest[24m    [03m[pr_number|url][23m    Fetch PR #NUMBER and rebase against main
+
 
 EOF
         return 1
@@ -645,15 +651,20 @@ function _xeta::pr::test {
 function _xeta::plugin {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
-            Usage: ${(j: :)${(s.::.)0#_}} <command> [options]
 
-            Available commands:
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-            disable <plugin> Disable plugin(s)
-            enable <plugin>  Enable plugin(s)
-            info <plugin>    Get information of a plugin
-            list             List all available Xeta plugins
-            load <plugin>    Load plugin(s)
+    [04mAvailable commands[24m:
+        
+    [04mdisable[24m    [03m[plugin1 ...][23m     Disable plugin(s)
+    [04menable[24m     [03m[plugin1 ...][23m     Enable plugin(s)
+    [04minfo[24m       [03m[plugin][23m          Get information on a plugin
+    [04mlist[24m                         List all available plugins
+    [04mload[24m       [03m[plugin1 ...][23m     Load plugin(s)
+    [04mpath[24m       [03m[plugin1 ...][23m     Get the absolute path to plugin(s)
+    [04mremove[24m     [03m[plugin1 ...][23m     Remove plugin(s)
+    [04mupdate[24m     [03m[plugin1 ...][23m     Update plugin(s)
+    
 
 EOF
         return 1
@@ -974,18 +985,20 @@ function _xeta::plugin::update {
 function _xeta::theme {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
-            Usage: ${(j: :)${(s.::.)0#_}} <command> [options]
 
-            Available commands:
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-            list              List all available Xeta themes
-            set <theme>       Set a theme in your .zshrc file
-            use <theme>       Load a theme
-            previews          Preview all available themes
-            preview <theme>   Preview a theme
-            fav <theme>    Add a theme to your favorites
-            unfav <theme>     Remove a theme from your favorites
-            lsfav             List themes in your favorites list
+    [04mAvailable commands[24m:
+
+    [04mlist[24m                        List all available Xeta themes
+    [04mpreview[24m     [03m[theme1 ...][23m    Preview a theme(s)
+    [04mpreviews[24m                    Preview all available themes
+    [04mset[24m         [03m[theme][23m         Set a theme in your [03m.zshrc[23m file
+    [04muse[24m         [03m[theme][23m         Load a theme
+    [04mfav[24m         [03m[theme1 ...][23m    Add a theme(s) to your favorites
+    [04munfav[24m       [03m[theme1 ...][23m    Remove a theme(s) from your favorites
+    [04mlsfav[24m                       List themes in your favorites list
+
 
 EOF
         return 1
@@ -1201,16 +1214,19 @@ function _xeta::aliases {
 
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
-    Usage: ${(j: :)${(s.::.)0#_}} <command> [options]
+    
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    Available commands:
+    [04mAvailable commands[24m:
 
-    list                       List all defined aliases
-    add <alias_name>           Define a new alias
-    remove <alias_name>        Remove a defined alias
-    cmd_for <alias_name>       Get the command for an alias name
-    name_for <command>         Get the alias name for a command
-    contains <string>          Get all aliases containing a string
+    [04mlist[24m                          List all defined aliases
+    [04madd[24m           [03m[alias_name][23m    Define a new alias
+    [04mremove[24m        [03m[alias_name][23m    Remove a defined alias
+    [04mcmd_for[24m       [03m[alias_name][23m    Get the command for an alias name
+    [04mname_for[24m      [03m[command][23m       Get the alias name for a command
+    [04mcontaining[24m    [03m[string][23m        Get all aliases containing a string
+
+
 EOF
         return 1
     }
@@ -1352,10 +1368,19 @@ function _xeta::aliases::containing {
 }
 
 function _xeta::util {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <cmmand>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    [04mAvailable commands[24m:
+
+    [04mextract[24m    [03m[archive][23m    Extract archived files
+
+
+EOF
         return 1
-    fi
+    }
     local command="$1"
     shift
 
@@ -1524,10 +1549,27 @@ EOF
 }
 
 function _xeta::edit {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <zshrc|bashrc|config|favs|aliases|globals|keybinds|path|jumppoints>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    Available commands:
+
+    zshrc            Edit your $HOME/.zshrc file
+    bashrc           Edit your $HOME/.bashrc file
+    favs             Edit your $XCONFIG/theme-favlist.conf file
+    config           Edit your $XCONFIG/xeta.conf file
+    aliases          Edit your $XCONFIG/aliases.conf file
+    globals          Edit your $XCONFIG/globals.conf file
+    keybinds         Edit your $XCONFIG/key-binds.conf file
+    jumppoints       Edit your $XCONFIG/jump-points.conf
+    path             Edit your $XCONFIG/path.conf file
+
+
+EOF
         return 1
-    fi
+    }
     local command="$1"
     shift
 
@@ -1607,10 +1649,19 @@ function _xeta::edit::path {
 }
 
 function _xeta::stats {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    Available commands:
+
+    cmds              Stats on the top 20 most used commands
+
+
+EOF
         return 1
-    fi
+    }
     local command="$1"
     shift
 
@@ -1626,10 +1677,20 @@ function _xeta::stats::cmds {
 }
 
 function _xeta::git {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    Available commands:
+
+    status             View the current status of a repository
+    commit <command>   Manage commits in the current repository
+
+
+EOF
         return 1
-    fi
+    }
     local command="$1"
     shift
 
@@ -1697,7 +1758,22 @@ function _xeta::git::commit::specific {
 }
 
 function _xeta::user {
-    NULL=:
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    Available commands:
+
+    username <command>            Manage your username
+    password <command>            Manage your password
+    pin <command>                 Manage your pin
+    email <command>               Manage your email
+
+
+EOF
+        return 1
+    }
 }
 
 function _xeta::user::username {
@@ -1717,7 +1793,19 @@ function _xeta::user::email {
 }
 
 function _xeta::toggle {
-    NULL=:
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    Available commands:
+
+    sudo              Toggle automatic sudo commands
+
+
+EOF
+        return 1
+    }    
 }
 
 function _xeta::toggle::sudo {
