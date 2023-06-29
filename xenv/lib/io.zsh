@@ -42,7 +42,7 @@ EOF
 }
 
 function io::show_common_options() {
-    printf "[::: google] [f1 bpytop] [f2 htop] [q exit]\n\n"
+    printf "[::: google] [f+1 bpytop] [f+2 htop] [q exit]\n\n"
 }
 
 function io::notify() {

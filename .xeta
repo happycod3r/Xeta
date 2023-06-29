@@ -244,13 +244,6 @@ EOF
                 exit 0
             }
 
-            function out() {
-                CYAN='\033[0;36m'
-                PURPLE='\033[0;35m'
-                NC='\033[0m'
-                echo -e "${CYAN}[XETA] ${PURPLE}$*${NC}"
-            }
-
             encode() {
                 if [[ $# -eq 0 ]]; then
                     cat | base64
@@ -291,6 +284,8 @@ EOF
 
                     while [[ "$good_pin" == "false" ]]; do
                         clear
+                        io::banner
+                        io::show_common_options
                         io::notify "Enter your pin to continue.${reset_color}" 
                         read "pin?pin: ${reset_color}"
 
@@ -329,9 +324,11 @@ EOF
                 # --------------- NEW USERS ------------------
 
                 while [[ "$good_pin" == "false" ]]; do
+                    io::banner
+                    io::show_common_options
                     io::notify "Set a pin for future use
-Pin or (q) to quit${reset_color}" 
-                    read "pin?: "
+    Pin or (q) to quit${reset_color}" 
+                    read "pin?pin: "
 
                     if [[ -z "$pin" ]]; then
                         clear
@@ -480,9 +477,7 @@ Pin or (q) to quit${reset_color}"
     
     _init::load_library_files
     _init::load_xtx_files
-    #////////////////////////////
     _init::sec_gate
-    #////////////////////////////
     _init::load_plugins
     _init::load_themes
     _init::load_hooks

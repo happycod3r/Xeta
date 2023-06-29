@@ -130,10 +130,7 @@ function _xeta {
             ;;
             user)
                 subcmds=(
-                    'username:Manage your username'
-                    'password:Manage your password'
                     'pin:Manage your pin'
-                    'email:Manage your email'
                 )
                 _describe 'command' subcmds
             ;;
@@ -201,31 +198,10 @@ function _xeta {
                 )
                 _describe 'command' subcmds
             ;;
-            user::(username))
-                subcmds=(
-                    'set:Set your username'
-                    'unset:Unset your username'
-                )
-                _describe 'command' subcmds
-            ;;
-            user::(password))
-                subcmds=(
-                    'set:Set your password'
-                    'unset:Unset your password'
-                )
-                _describe 'command' subcmds
-            ;;
             user::(pin))
                 subcmds=(
                     'set:Set your pin'
                     'unset:Unset your pin'
-                )
-                _describe 'command' subcmds
-            ;;
-            user::(email))
-                subcmds=(
-                    'set:Set your email'
-                    'unset:Unset your email'
                 )
                 _describe 'command' subcmds
             ;;
@@ -1913,7 +1889,7 @@ EOF
     io::notify "Commit was successful!"
 }
 
-function _xeta::user {
+function _xeta::user {  
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
@@ -1921,66 +1897,12 @@ function _xeta::user {
 
     [04mAvailable commands[24m:
 
-    [04musername[24m    [03m[command][23m     Manage your username
-    [04mpassword[24m    [03m[command][23m     Manage your password
     [04mpin[24m         [03m[command][23m     Manage your pin
-    [04memail[24m       [03m[command][23m     Manage your email
 
 
 EOF
         return 1
     }
-}
-
-function _xeta::user::username {
-    (( $# > 0 && $+functions[$0::$1] )) || {
-        cat >&2 <<EOF
-
-    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
-
-    [04mAvailable commands[24m:
-
-    [04mset[24m     [03m[pin][23m     Set your username
-    [04munset[24m   [03m[pin][23m     Clear your saved username
-
-
-EOF
-        return 1
-    }
-}
-
-function _xeta::user::username::set {
-    cf="$XCONFIG/credentials.conf"
-
-}
-
-function _xeta::user::username::unset {
-    cf="$XCONFIG/credentials.conf"
-}
-
-function _xeta::user::password {
-    (( $# > 0 && $+functions[$0::$1] )) || {
-        cat >&2 <<EOF
-
-    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
-
-    [04mAvailable commands[24m:
-
-    [04mset[24m     [03m[password][23m      Set your password
-    [04munset[24m   [03m[password][23m      Clear your saved password
-
-
-EOF
-        return 1
-    }
-}
-
-function _xeta::user::password::set {
-    cf="$XCONFIG/credentials.conf"
-}
-
-function _xeta::user::password::unset {
-    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::user::pin {
@@ -2009,31 +1931,6 @@ function _xeta::user::pin::set {
 
 function _xeta::user::pin::unset {
     cf="$XCONFIG/credentials.conf"   
-}
-
-function _xeta::user::email { 
-    (( $# > 0 && $+functions[$0::$1] )) || {
-        cat >&2 <<EOF
-
-    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
-
-    [04mAvailable commands[24m:
-
-    [04mset[24m     [03m[email][23m      Set your email
-    [04munset[24m   [03m[email][23m      Clear your saved email
-
-
-EOF
-        return 1
-    }    
-}
-
-function _xeta::user::email::set {
-    cf="$XCONFIG/credentials.conf"
-}
-
-function _xeta::user::email::unset {
-    cf="$XCONFIG/credentials.conf"
 }
 
 function _xeta::toggle {    

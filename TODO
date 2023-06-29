@@ -1,5 +1,7 @@
 ☐ @critical Look at log function. I may be able to replace io::notify io::err etc with this in the cli. @created(23-06-29 01:09)
 
+☐ Style io::banner. Needs color. @created(23-06-29 14:40)
+
 ☐ Create xeta::disable xeta::disable::command @created(23-06-28 00:35)
 
 ☐ Make aliases for cli commands. @created(23-06-28 00:09)
@@ -41,7 +43,7 @@
 
 /////////////////////////////////////////
 
-☐ Implement user pass system for SUDO. @critical ``@created(23-06-23 00:42)
+✔ Implement pin system @critical @created(23-06-23 00:42) @done(23-06-29 14:41)
 
 ☐ Locate and fix .pre-xeta formally known as pre-oh-my-zsh functionality in cli. @critical  @created(23-06-22 02:33)
 
