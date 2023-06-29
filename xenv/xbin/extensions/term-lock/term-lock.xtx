@@ -1,0 +1,135 @@
+
+function term_lock() {
+    if [[ -n $USE_PIN && "$USE_PIN" == "true" ]]; then
+        function fatal() {
+            CYAN='\033[0;36m'
+            RED='\033[0;31m'
+            NC='\033[0m'
+            echo -e "$0: ${RED}Error:${CYAN} $*" >&2
+            exit 0
+        }
+
+        encode() {
+            if [[ $# -eq 0 ]]; then
+                cat | base64
+            else
+                printf '%s' "$1" | base64
+            fi
+        }
+
+        decode() {
+            if [[ $# -eq 0 ]]; then
+                cat | base64 --decode
+            else
+                printf '%s' "$1" | base64 --decode
+            fi
+        }
+
+        DONE="false"
+        CONFIG_DIRECTORY="${XCONFIG}"
+        PIN_FILE="${CONFIG_DIRECTORY}/.pin.conf"
+        new_user="true"
+
+        if [[ ! -d "$CONFIG_DIRECTORY" ]]; then
+            mkdir -p "$CONFIG_DIRECTORY"
+        fi
+
+        while [[ "$DONE" == "false" ]]; do
+            good_pin="false"
+            pin_pattern='^[0-9]{4}$' # 4 digits.
+            exit_char="q"
+
+        # ------------------- CURRENT USERS ------------------
+
+            if [[ -f "$PIN_FILE" ]]; then
+
+                new_user="false"
+                correct_pin="$(sed "1q;d" $XCONFIG/.pin.conf | cut -d':' -f2)"
+                decoded_pin="$(decode $correct_pin)"
+
+                while [[ "$good_pin" == "false" ]]; do
+                    clear
+                    io::banner
+                    io::show_common_options
+                    io::notify "Enter your pin to continue.${reset_color}" 
+                    read "pin?pin: ${reset_color}"
+
+                    if [[ -z "$pin" ]]; then
+                        io::notify "Pin is empty. Enter a valid pin to continue.${reset_color}"
+                        clear
+                        continue
+                    fi
+
+                    if [[ "$pin" == "$exit_char" ]]; then
+                        io::notify "Press enter to exit...${reset_color}"
+                        read "a?"
+                        clear
+                        exit 0
+                    fi
+
+                    if [[ $pin =~ $pin_pattern ]]; then
+                    
+                        if [[ "$pin" == "$decoded_pin" ]]; then
+                            good_pin="true"
+                            DONE="true"
+                            clear
+                            break
+                        else
+                            continue
+                        fi
+
+                    else
+                        clear
+                        io::notify "Invalid pin. Must be no less than 4 digits and no letter or characters.${reset_color}"
+                    fi
+
+                done
+            fi
+
+            # --------------- NEW USERS ------------------
+
+            while [[ "$good_pin" == "false" ]]; do
+                io::banner
+                io::show_common_options
+                io::notify "Set a pin for future use
+Pin or (q) to quit${reset_color}" 
+                read "pin?pin: "
+
+                if [[ -z "$pin" ]]; then
+                    clear
+                    io::notify "Pin is empty. Enter a valid pin to continue.${reset_color}"
+                    read "a?Press enter to continue..."
+                    clear
+                    continue
+                fi
+
+                if [[ "$pin" == "$exit_char" ]]; then
+                    io::notify "Press enter to exit...${reset_color}"     
+                    read "a?"
+                    clear
+                    exit 0
+                fi
+
+                if [[ $pin =~ $pin_pattern ]]; then
+                    local encode_pin
+                    encoded_pin="$(encode $pin)"
+                    echo "pin:$encoded_pin" > "$PIN_FILE"
+                    good_pin="true"
+                    DONE="true"
+                    clear
+                else
+                    clear
+                    io::notify "Invalid pin. Must be no less than 4 digits and no letter or characters.${reset_color}"
+                    read "a?Press enter to continue..."
+                    clear
+                fi
+            done
+            if [[ $DONE == "true" ]]; then
+                break
+            fi
+
+        done
+    elif [[ -n $USE_PIN && "$USE_PIN" == "false" ]]; then
+        io::notify "Pin system will be disabled.${reset_color}"
+    fi    
+}
