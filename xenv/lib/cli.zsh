@@ -205,7 +205,6 @@ function _xeta {
                 subcmds=(
                     'set:Set your username'
                     'unset:Unset your username'
-                    'reset:Reset your username'
                 )
                 _describe 'command' subcmds
             ;;
@@ -213,7 +212,6 @@ function _xeta {
                 subcmds=(
                     'set:Set your password'
                     'unset:Unset your password'
-                    'reset:Reset your password'
                 )
                 _describe 'command' subcmds
             ;;
@@ -221,7 +219,6 @@ function _xeta {
                 subcmds=(
                     'set:Set your pin'
                     'unset:Unset your pin'
-                    'reset:Reset your pin'
                 )
                 _describe 'command' subcmds
             ;;
@@ -229,7 +226,6 @@ function _xeta {
                 subcmds=(
                     'set:Set your email'
                     'unset:Unset your email'
-                    'reset:Reset your email'
                 )
                 _describe 'command' subcmds
             ;;
@@ -361,7 +357,6 @@ EOF
 
 function _xeta::credits {
     echo -e "
-    ////////////////////////////////////////////////////
     [0;1;35;95mOh-My-Zsh v5.0.8${reset_color}
         https://github.com/ohmyzsh 
     [0;1;31;91mZsh-Syntax Highlighting v0.8.0${reset_color}
@@ -378,7 +373,6 @@ function _xeta::credits {
         https://github.com/romkatv/powerlevel10k
     [0;1;33;93mSpaceship Prompt v4.14.0${reset_color}
         https://spaceship-prompt.sh/
-    ////////////////////////////////////////////////////
 "
 }
 
@@ -395,7 +389,10 @@ function _xeta::version {
 
         if [[ -n "$XETA_VERSION" && ! -z "$XETA_VERSION" ]]; then
             version="$XETA_VERSION"
+            io::space
+            io::notify "Current version:${reset_color}"
             printf "%s\n" "$version"
+            io::space
             return
         else
             version=$(command git describe --tags HEAD 2>/dev/null) \
@@ -406,12 +403,16 @@ function _xeta::version {
             # Get short hash for the current HEAD
             local commit=$(command git rev-parse --short HEAD 2>/dev/null)
             # Show version and commit hash
+            io::notify
             printf "%s (%s)\n" "$version" "$commit"
+            io::space
         fi
     )
 } 
 
 function _xeta::reload {
+    io::noify "Reloading Zsh session ..."
+    io::space
     # Delete current completion cache
     command rm -f $_comp_dumpfile $ZSH_COMPDUMP
 
@@ -422,6 +423,8 @@ function _xeta::reload {
 }
 
 function _xeta::update {
+    io::notify "Updating Xeta (if there is one) ..."
+    io::space
     local last_commit=$(builtin cd -q "$XETA"; git rev-parse HEAD)
 
     # Run update script
@@ -448,14 +451,20 @@ function _xeta::update {
 }      
 
 function _xeta::backup {
-    XETA="${XETA:-~/.xeta}"
-    BACKUP_DIR="${HOME}/xeta-backups"
-    BACKUP_NAME="xeta.backup-$(date).zip"
-    sudo mkdir "$BACKUP_DIR"
-    sudo zip -r "${$BACKUP_DIR}/${BACKUP_NAME}" "$XETA" || {
-        io::notify "Failed to create backup is zip installed?"
-        return 1
+    io::yesno "Make a backup?" && {
+        XETA="${XETA:-~/.xeta}"
+        BACKUP_DIR="${HOME}/xeta-backups"
+        BACKUP_NAME="xeta.backup-$(date).zip"
+        io::notify "Creating backup @ $BACKUP_DIR/$BACKUP_NAME"
+        sudo mkdir "$BACKUP_DIR"
+        sudo zip -r "${$BACKUP_DIR}/${BACKUP_NAME}" "$XETA" || {
+            io::err "Failed to create backup is zip installed?"
+            return 1
+        }
+        io::notify "Backup was created @$(date)."
+        return 0
     }
+    io::notify "No backup was created."
 }
 
 function _xeta::uninstall {
@@ -549,14 +558,15 @@ function _xeta::pr::test {
 
     # Check the input
     if ! [[ -n "$1" && "$1" =~ ^[[:digit:]]+$ ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <PR_NUMBER_or_URL>"
+        echo >&2 "[04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[pr_number|url][23m"
         return 1
     fi
-
+    
     # Save current git HEAD
     local branch
     branch=$(builtin cd -q "$XETA"; git symbolic-ref --short HEAD) || {
         _xeta::log error "error when getting the current git branch. Aborting..."
+        io::err "error when getting the current git branch. Aborting..."
         return 1
     }
 
@@ -677,10 +687,16 @@ EOF
 }
 
 function _xeta::plugin::disable {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <plugin> [...]"
+    
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     # Check that plugin is in $plugs
     local -a dis_plugins
@@ -766,10 +782,15 @@ function _xeta::plugin::disable {
 }
 
 function _xeta::plugin::enable {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <plugin> [...]"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     # Check that plugin is not in $plugs
     local -a add_plugins
@@ -840,10 +861,15 @@ function _xeta::plugin::enable {
 }
 
 function _xeta::plugin::info {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <plugin>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     local readme
     for readme in "${XCUSTOM}/plugs/$1/README.md" "${XPLUGS}/$1/README.md"; do
@@ -866,7 +892,6 @@ function _xeta::plugin::list {
     local -a custom_plugins builtin_plugins
     custom_plugins=("$XCUSTOM"/plugins/*(-/N:t))
     builtin_plugins=("$XPLUGS"/*(-/N:t))
-
     # If the command is being piped, print all found line by line
     if [[ ! -t 1 ]]; then
         print -l ${(q-)custom_plugins} ${(q-)builtin_plugins}
@@ -884,13 +909,19 @@ function _xeta::plugin::list {
         print -P "%U%BBuilt-in plugins%b%u:"
         print -lac ${(q-)builtin_plugins}
     fi
+    io::space
 }
 
 function _xeta::plugin::load {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <plugin> [...]"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     local plugin base has_completion=0
 
@@ -936,10 +967,15 @@ function _xeta::plugin::load {
 }
 
 function _xeta::plugin::path {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: xeta plugin path [plugin1 plugin2...]"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     # Make sure we only load .plugin.zsh files and from the correct path.
     for _plugin in $plugins; do
@@ -954,10 +990,15 @@ function _xeta::plugin::path {
 }
  
 function _xeta::plugin::remove {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: xeta plugin path [plugin1 plugin2...]"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     # Make sure we only load .plugin.zsh files and from the correct path.
     for _plugin in $plugins; do
@@ -979,7 +1020,15 @@ function _xeta::plugin::remove {
 }
 
 function _xeta::plugin::update {
-    NULL=:
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[plugin1 ...][23m
+
+
+EOF
+        return 1
+    }
 }
 
 function _xeta::theme {
@@ -1018,7 +1067,6 @@ function _xeta::theme::list {
     local -a custom_themes builtin_themes
     custom_themes=("$XCUSTOM"/**/*.zsh-theme(-.N:r:gs:"$XCUSTOM"/themes/:::gs:"$XCUSTOM"/:::))
     builtin_themes=("$XTHEMES"/*.zsh-theme(-.N:t:r))
-
     # If the command is being piped, print all found line by line
     if [[ ! -t 1 ]]; then
         print -l ${(q-)custom_themes} ${(q-)builtin_themes}
@@ -1042,13 +1090,19 @@ function _xeta::theme::list {
     # Print built-in themes
     print -P "%U%BBuilt-in themes%b%u:"
     print -lac ${(q-)builtin_themes}
+    io::space
 }
 
 function _xeta::theme::preview {
-    if [[ $# -eq 0 ]]; then
-        printf "Usage: xeta::theme::preview <theme>\n"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[theme][23m
+
+
+EOF
         return 1
-    fi
+    }
     THEME=$1
     THEME_NAME="$THEME.zsh-theme"
     print "$fg[blue]${(l.((${COLUMNS}-${#THEME_NAME}-5))..─.)}$reset_color $THEME_NAME $fg[blue]───$reset_color"
@@ -1081,10 +1135,15 @@ function _xeta::theme::previews {
 }
 
 function _xeta::theme::set {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <theme>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[theme][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     # Check that theme exists
     if [[ ! -f "$XCUSTOM/$1.zsh-theme" ]] \
@@ -1147,10 +1206,15 @@ EOF
 }
 
 function _xeta::theme::use {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <theme>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[theme][23m
+
+
+EOF
         return 1
-    fi
+    }
 
     # Respect compatibility with old lookup order
     if [[ -f "$XCUSTOM/$1.zsh-theme" ]]; then
@@ -1177,11 +1241,16 @@ function _xeta::theme::lsfav {
 }
 
 function _xeta::theme::fav {
-    FAVLIST="$XCONFIG/theme-favlist.conf"
-    if [[ $# -eq 0 ]]; then
-        printf "Usage: xeta::theme::fav <theme>\n"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[theme1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
+    FAVLIST="$XCONFIG/theme-favlist.conf"
     THEME=$1
     THEME_NAME="$THEME.zsh-theme"
 
@@ -1198,10 +1267,15 @@ function _xeta::theme::fav {
 }
 
 function _xeta::theme::unfav {
-    if [[ $# -eq 0 ]]; then
-        printf "Usage: xeta::theme::unfav <theme>\n"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[theme1 ...][23m
+
+
+EOF
         return 1
-    fi
+    }
     FAVLIST="$XCONFIG/theme-favlist.conf"
     THEME="$1.zsh-theme"
     if grep -q "$THEME" "$FAVLIST"; then
@@ -1249,20 +1323,30 @@ function _xeta::aliases::list {
 
 function _xeta::aliases::add {
     
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <alias_name> <alias_body>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[alias_name][23m
+
+
+EOF
         return 1
-    fi
+    }
     
     echo "alias $1=\"$2\"" >> "$XCONFIG/aliases.conf" && io::notify "Alias saved."
     echo
 }
 
 function _xeta::aliases::remove {
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <alias>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[alias_name][23m
+
+
+EOF
         return 1
-    fi
+    }
     io::notify "This only removes the alias for the current session.\nIf you want to remove it permanently you'll have to do it manually for now.\nIn the future I will include an option to permanently remove the alias from the cli.\n\n${reset_color}"
     local choice="$1"
     alias | grep $choice
@@ -1281,6 +1365,15 @@ function _xeta::aliases::remove {
 }
 
 function _xeta::aliases::cmd_for {
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[alias_name][23m
+
+
+EOF
+        return 1
+    }
     (( $+aliases[$1] )) && {
         io::notify "${reset_color}The following alias was found:\n"
         io::notify "${reset_color}$aliases[$1]"
@@ -1290,10 +1383,15 @@ function _xeta::aliases::cmd_for {
 
 function _xeta::aliases::name_for {  
     # Use this if you remember the command but not the alias name.
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <alias_command>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+
+EOF
         return 1
-    fi
+    }
     function alias_finder() {
         local cmd="" exact="" longer="" wordStart="" wordEnd="" multiWordEnd=""
         for i in $@; do
@@ -1351,10 +1449,15 @@ function _xeta::aliases::name_for {
 
 function _xeta::aliases::containing {  
     # Use this if you don't remember which alias/es a command belongs to.
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <alias_command>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[string][23m
+
+
+EOF
         return 1
-    fi
+    }
     eval '
     function acs(){
         (( $+commands[python3] )) || { 
@@ -1388,17 +1491,17 @@ EOF
 }
 
 function _xeta::util::extract {
-    setopt localoptions noautopushd
 
-    if [[ $# -eq 0 ]]; then
-        cat >&2 <<'EOF'
-        Usage: extract [-option] [file ...]
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
 
-        Options:
-        -r, --remove    Remove archive after unpacking.
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[file][23m
+
+
 EOF
-    fi
-
+        return 1
+    }
+    setopt localoptions noautopushd
     local remove_archive=1
     if [[ "$1" == "-r" ]] || [[ "$1" == "--remove" ]]; then
         remove_archive=0
@@ -1720,10 +1823,20 @@ function _xeta::git::status {
 
 function _xeta::git::commit {
     
-    if [[ -z "$1" ]]; then
-        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <command>"
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    [04mAvailable commands[24m:
+
+    all                        Commit all changes
+    specific   [03m[file1 ...][23m     Commit specific files
+
+
+EOF
         return 1
-    fi
+    }
     local command="$1"
     shift
 
@@ -1731,27 +1844,31 @@ function _xeta::git::commit {
 }
 
 function _xeta::git::commit::all {
-    
-    _type="$1"
-    _msg="$2" 
     if [[ -z "$_msg" || -z "$_type" ]]; then 
-        io::notify "Commit message and type is missing!"     
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
         return 1 
     fi
-    
+    _type="$1"
+    _msg="$2"
     git add . || {io::err "Error adding files!"; return 1;}
     git commit -m "[${_type}] $_msg" || {io::err "Commit was unsuccessfull!"; return 1;}
     io::notify "Commit was successful!"    
 }
 
 function _xeta::git::commit::specific {
+    if [[ -z "$_msg" || -z "$_type" ]]; then 
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m [03m[file1 ...][23m"   
+        return 1 
+    fi
     _type="$1"
     _msg="$2" 
     shift 2
     files=(${@})
-    if [[ -z "$_msg" ]]; then
-        return 1
+    if [[ -n "$files" || -z "$files" ]]; then 
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} [03m[msg][23m [03m[type][23m"   
+        return 1 
     fi
+
     git add "${files}" || { io::err "Error adding files!"; return 1;}
     git commit -m "[${_type}] $_msg" || {io::err "Commit was unsuccessfull!"; return 1;}
     io::notify "Commit was successful!"
@@ -1777,22 +1894,106 @@ EOF
 }
 
 function _xeta::user::username {
-    NULL=:
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    [04mAvailable commands[24m:
+
+    [04mset[24m     [03m[pin][23m     Set your username
+    [04munset[24m   [03m[pin][23m     Clear your saved username
+
+
+EOF
+        return 1
+    }
+}
+
+function _xeta::user::username::set {
+    
+}
+
+function _xeta::user::username::unset {
+    
 }
 
 function _xeta::user::password {
-    NULL=:
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    [04mAvailable commands[24m:
+
+    [04mset[24m     [03m[password][23m      Set your password
+    [04munset[24m   [03m[password][23m      Clear your saved password
+
+
+EOF
+        return 1
+    }
+}
+
+function _xeta::user::password::set {
+    
+}
+
+function _xeta::user::password::unset {
+    
 }
 
 function _xeta::user::pin {
-    NULL=:
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    [04mAvailable commands[24m:
+
+    [04mset[24m     [03m[pin][23m      Set your pin
+    [04munset[24m   [03m[pin][23m      Clear your saved pin
+
+
+EOF
+        return 1
+    }
 }
 
-function _xeta::user::email {
-    NULL=:
+function _xeta::user::pin::set {
+    
 }
 
-function _xeta::toggle {
+function _xeta::user::pin::unset {
+    
+}
+
+function _xeta::user::email { 
+    (( $# > 0 && $+functions[$0::$1] )) || {
+        cat >&2 <<EOF
+
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+
+    [04mAvailable commands[24m:
+
+    [04mset[24m     [03m[email][23m      Set your email
+    [04munset[24m   [03m[email][23m      Clear your saved email
+
+
+EOF
+        return 1
+    }    
+}
+
+function _xeta::user::email::set {
+    
+}
+
+function _xeta::user::email::unset {
+    
+}
+
+function _xeta::toggle {    
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
@@ -1812,11 +2013,11 @@ function _xeta::toggle::sudo {
     echo "hello sudo"
     _toggle_sudo_variable
     toggle_use_zsh_hooks_variable
-    # if [[ $SUDO == 'true' ]]; then 
-    #     io::notify "Automatic sudo commands are off"; 
-    #     return 0;
-    # elif [[ $SUDO == 'false' ]]; then 
-    #     io::notify "Automatic sudo commands are on"; 
-    #     return 0;
-    # fi
+    if [[ $SUDO == 'true' ]]; then 
+        io::notify "Automatic sudo commands are off"; 
+        return 0;
+    elif [[ $SUDO == 'false' ]]; then 
+        io::notify "Automatic sudo commands are on"; 
+        return 0;
+    fi
 }   

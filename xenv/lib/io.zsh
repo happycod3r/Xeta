@@ -70,5 +70,10 @@ function io::yesno() {
     return 0
 }
 
+function io::space() {
+    echo
+    return 0
+}
+
 autoload -Uz io::out io::pf io::err io::notify io::notify_modified
  
