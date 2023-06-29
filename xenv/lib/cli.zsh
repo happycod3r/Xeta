@@ -1552,19 +1552,19 @@ function _xeta::edit {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
-    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    Available commands:
+    [04mAvailable commands[24m:
 
-    zshrc            Edit your $HOME/.zshrc file
-    bashrc           Edit your $HOME/.bashrc file
-    favs             Edit your $XCONFIG/theme-favlist.conf file
-    config           Edit your $XCONFIG/xeta.conf file
-    aliases          Edit your $XCONFIG/aliases.conf file
-    globals          Edit your $XCONFIG/globals.conf file
-    keybinds         Edit your $XCONFIG/key-binds.conf file
-    jumppoints       Edit your $XCONFIG/jump-points.conf
-    path             Edit your $XCONFIG/path.conf file
+    [04mzshrc[24m         Edit your [03m.zshrc[23m file
+    [04mbashrc[24m        Edit your [03m.bashrc[23m file
+    [04mfavs[24m          Edit your [03mtheme-favlist.conf[23m file
+    [04mconfig[24m        Edit your [03mxeta.conf[23m file
+    [04maliases[24m       Edit your [03maliases.conf[23m file
+    [04mglobals[24m       Edit your [03mglobals.conf[23m file
+    [04mkeybinds[24m      Edit your [03mkey-binds.conf[23m file
+    [04mjumppoints[24m    Edit your [03mjump-points.conf[23m
+    [04mpath[24m          Edit your [03mpath.conf[23m file
 
 
 EOF
@@ -1652,11 +1652,11 @@ function _xeta::stats {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
-    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    Available commands:
+    [04mAvailable commands[24m:
 
-    cmds              Stats on the top 20 most used commands
+    [04mcmds[24m     Stats on the top 20 most used commands
 
 
 EOF
@@ -1680,12 +1680,12 @@ function _xeta::git {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
-    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    Available commands:
+    [04mAvailable commands[24m:
 
-    status             View the current status of a repository
-    commit <command>   Manage commits in the current repository
+    [04mstatus[24m                 View the current status of a repository
+    [04mcommit[24m    [03m[command][23m    Manage commits in the current repository
 
 
 EOF
@@ -1761,14 +1761,14 @@ function _xeta::user {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
-    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    Available commands:
+    [04mAvailable commands[24m:
 
-    username <command>            Manage your username
-    password <command>            Manage your password
-    pin <command>                 Manage your pin
-    email <command>               Manage your email
+    [04musername[24m    [03m[command][23m     Manage your username
+    [04mpassword[24m    [03m[command][23m     Manage your password
+    [04mpin[24m         [03m[command][23m     Manage your pin
+    [04memail[24m       [03m[command][23m     Manage your email
 
 
 EOF
@@ -1796,11 +1796,11 @@ function _xeta::toggle {
     (( $# > 0 && $+functions[$0::$1] )) || {
         cat >&2 <<EOF
 
-    Usage: ${(j: :)${(s.::.)0#_}} [03m[command][23m
+    [04mUsage[24m: ${(j: :)${(s.::.)0#_}} [03m[command][23m
 
-    Available commands:
+    [04mAvailable commands[24m:
 
-    sudo              Toggle automatic sudo commands
+    [04msudo[24m    Toggle automatic sudo commands
 
 
 EOF
