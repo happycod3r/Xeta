@@ -200,8 +200,7 @@ function _xeta {
             ;;
             user::(pin))
                 subcmds=(
-                    'set:Set your pin'
-                    'unset:Unset your pin'
+                    'reset:Set your pin'
                 )
                 _describe 'command' subcmds
             ;;
@@ -1903,6 +1902,10 @@ function _xeta::user {
 EOF
         return 1
     }
+    local command="$1"
+    shift
+
+    $0::$command "$@"
 }
 
 function _xeta::user::pin {
@@ -1913,24 +1916,21 @@ function _xeta::user::pin {
 
     [04mAvailable commands[24m:
 
-    [04mset[24m     [03m[pin][23m      Set your pin
-    [04munset[24m   [03m[pin][23m      Clear your saved pin
+    [04mreset[24m     [03m[pin][23m      Reset your pin
 
 
 EOF
         return 1
     }
+    local command="$1"
+    shift
+
+    $0::$command "$@"
 }
 
-function _xeta::user::pin::set {
-    cf="$XCONFIG/credentials.conf"
-    current_pin="$_PIN"
-    good_pin="false"
-    
-}
-
-function _xeta::user::pin::unset {
-    cf="$XCONFIG/credentials.conf"   
+function _xeta::user::pin::reset {
+    echo "hello"
+    term_lock "true"
 }
 
 function _xeta::toggle {    
