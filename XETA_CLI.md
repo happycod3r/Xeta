@@ -63,18 +63,8 @@
       - [xeta::git::commit::all](#xeta_git_commit_all)
       - [xeta::git::commit::specific](#xeta_git_commit_specific)
   - [xeta::user](#xeta_user)
-    - [xeta::user::username](#xeta_user_username)
-      - [xeta::user::username::set](#xeta_user_username_set)
-      - [xeta::user::username::unset](#xeta_user_username_unset)
-    - [xeta::user::password](#xeta_user_password)
-      - [xeta::user::password::set](#xeta_user_password_set)
-      - [xeta::user::password::unset](#xeta_user_password_unset)
     - [xeta::user::pin](#xeta_user_pin)
-      - [xeta::user::pin::set](#xeta_user_pin_set)
-      - [xeta::user::pin::unset](#xeta_user_pin_unset)
-    - [xeta::user::email](#xeta_user_email)
-      - [xeta::user::email::set](#xeta_user_email_set)
-      - [xeta::user::email::unset](#xeta_user_email_unset)
+      - [xeta::user::pin::reset](#xeta_user_pin_reset)
   - [xeta::toggle](#xeta_toggle)
     - [xeta::toggle::sudo](#xeta_toggle_sudo)
 
@@ -326,53 +316,13 @@
 
 - If called with no follow up commands it prints a usage message
 
-### [xeta::user::username](#xeta_user_username) (TODO: implement)
-
-- If called with no follow up commands it prints the username
-
-### [xeta::user::username::set](#xeta_user_username_set)
-
-- Sets your username
-
-### [xeta::user::username::unset](#xeta_user_username_unset)
-
-- Unsets your username
-
-### [xeta::user::password](#xeta_user_password) (TODO: implement)
-
-- If called with no follow up commands it prints your password
-
-### [xeta::user::password::set](#xeta_user_password_set)
-
-- Sets your password
-
-### [xeta::user::password::unset](#xeta_user_password_unset)
-
-- Unsets your password
-
 ### [xeta::user::pin](#xeta_user_pin) (TODO: implement)
 
-- If called with no follow up commands it prints your pin
+- If called with no follow up commands it prints the usage message
 
-### [xeta::user::pin::set](#xeta_user_pin_set)
+### [xeta::user::pin::reset](#xeta_user_pin_reset)
 
-- Sets your pin
-
-### [xeta::user::pin::unset](#xeta_user_pin_unset)
-
-- Unsets your pin
-
-### [xeta::user::email](#xeta_user_email) (TODO: implement)
-
-- If called with no follow up commands it prints your email
-
-### [xeta::user::email::set](#xeta_user_email_set)
-
-- Sets your email
-
-### [xeta::user::email::unset](#xeta_user_email_unset)
-
-- Unsets your email
+- Resets your pin
 
 ### [xeta::toggle](#xeta_toggle)
 

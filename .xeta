@@ -326,9 +326,7 @@ EOF
     
     _init::shield_from_non_zsh_exec
     _init::validate_configs
-    # Needs to load first as functions below rely on variables defined in
-    # the xeta config file. 
-    _init::load_xeta_config
+    _init::load_xeta_config # Needs to load first
 
     _init::create_cache_dirs
     _init::add_directory_tree_to_fpath
