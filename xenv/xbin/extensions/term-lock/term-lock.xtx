@@ -41,7 +41,7 @@ function term_lock() {
                 io::err "Failed to remove old pin. Make sure you have permissions!"
                 return 1
             }
-        fi
+        fi 
 
         while [[ "$DONE" == "false" ]]; do
             good_pin="false"

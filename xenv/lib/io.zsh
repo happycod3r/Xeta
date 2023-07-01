@@ -34,15 +34,18 @@ function io::banner() {
     ,8P  Y8,   8PP"""""""    88     ,adPPPPP88      
    d8'    `8b  "8b,   ,aa    88,    88,    ,88      
   8P        Y8  `"Ybbd8"'    "Y888  `"8bbdP"Y8
-           01011000 01100101 01110100 01100001          
-           
+           01011000 01100101 01110100 01100001           
 v1.0.0
-
 EOF
 }
 
 function io::show_common_options() {
-    printf "[::: google] [f+1 bpytop] [f+2 htop] [q exit]\n\n"
+    cat >&2 <<EOF 
+
+[::: google] [f+1 bpytop] [f+2 htop] [q exit]
+
+EOF
+
 }
 
 function io::notify() {

@@ -136,7 +136,9 @@ function _xeta {
             ;;
             toggle)
                 subcmds=(
-                    'sudo:Toggle default to sudo commands'
+                    'use_pin:Toggle signin on/off'
+                    'sudo:Toggle sudo commands on/off'
+                    'use_zsh_hooks:Toggle zsh hook functions on/off'
                 )
                 _describe 'command' subcmds
             ;;
@@ -1941,23 +1943,33 @@ function _xeta::toggle {
 
     [04mAvailable commands[24m:
 
-    [04msudo[24m    Toggle automatic sudo commands
-
+    [04muse_pin[24m          Toggle pin on/off
+    [04msudo[24m             Toggle sudo commands on/off
+    [04muse_zsh_hooks[24m    Toggle zsh hook functions on/off
 
 EOF
         return 1
-    }    
+    }
+    local command="$1"
+    shift
+
+    $0::$command "$@"
 }
 
 function _xeta::toggle::sudo {
-    echo "hello sudo"
     _toggle_sudo_variable
-    toggle_use_zsh_hooks_variable
-    if [[ $SUDO == 'true' ]]; then 
-        io::notify "Automatic sudo commands are off"; 
-        return 0;
-    elif [[ $SUDO == 'false' ]]; then 
-        io::notify "Automatic sudo commands are on"; 
-        return 0;
-    fi
-}   
+    cat "$XCONFIG/xeta.conf" | grep "SUDO"
+    io::space
+}
+
+function _xeta::toggle::use_pin {
+    _toggle_use_pin_variable
+    cat "$XCONFIG/xeta.conf" | grep "USE_PIN"
+    io::space
+}
+
+function _xeta::toggle::use_zsh_hooks {
+    _toggle_use_zsh_hooks_variable
+    cat "$XCONFIG/xeta.conf" | grep "USE_ZSH_HOOKS"
+    io::space
+}
