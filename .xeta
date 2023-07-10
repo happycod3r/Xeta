@@ -234,7 +234,8 @@ EOF
     #///////////////// CLI AVAILABLE BEYOND THIS POINT //////////////////
 
     function _init::sec_gate() {
-        term_lock || { io::notify "Term-Lock doesn't seem to be available."; return 1;}
+        #term_lock || { io::notify "Term-Lock doesn't seem to be available."; return 1;}
+        return 0
     }
 
     function _init::load_plugins() {

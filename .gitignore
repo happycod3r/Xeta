@@ -1,7 +1,7 @@
 
-.private-key
-.gt
-xenv/.config/git-credentials.conf
+*.private-key
+*.gt
+*.git-credentials.conf
 README_DEV.md
 
 *.tmp
